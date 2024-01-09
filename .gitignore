@@ -1,0 +1,8 @@
+readme_guncelleme_arayuzu
+**/__pycache__
+dist
+build
+**/*.json
+**/*.csv
+**/*.txt
+!konfigurasyon.json

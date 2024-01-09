@@ -65,7 +65,7 @@ HOCA_OYLAMA_LINKI_CSV = "https://docs.google.com/spreadsheets/d/1w386auUiJaGwoUA
 HOCA_YORULMALA_LINKI_CSV = "https://docs.google.com/spreadsheets/d/1mexaMdOeB-hWLVP4MI_xmnKwGBuwoRDk6gY9zXDycyI/export?format=csv"
 DERS_OYLAMA_LINKI_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSDFicOFbJu9Fnc4Hl0mFuuaC0L4PiEmUFkkJrgocwWGWs1wB3TyN1zd4okW8svC6IT2HMIe64NQUUy/pub?output=csv"
 DERS_YORUMLAMA_LINKI_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQvGyGLQxobIpaVdQItSpqEoiwJ0DIIHE9kVvCHhfKQ7yYR16c2tI_ix4Z9d2tA4aLt2c4fTLGxlL-s/pub?output=csv"
-VARSAYILAN_GITHUB_URL = "https://github.com/kaayra2000/YTU_MEKATRONIK_MUHENDISLIGI_ARSIV"
+VARSAYILAN_GITHUB_URL = "https://github.com/baselkelziye/YTU_Bilgisayar_Muhendisligi_Arsiv"
 
 GITHUB_URL_ANAHTARI = "github_url"
 CIKMISLAR_ANAHTARI = "cikmislar"

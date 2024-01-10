@@ -22,15 +22,6 @@ unvanlarin_onceligi = {"Prof.": 1, "Doç.": 2, "Dr.": 3}
 
 # LİNKLERİN TUTULDUĞU VERİELRİ KONTROL EDİP OLMAYAN DEĞERLERİ GÜNCELLEME
 konfigurasyon_json_guncelle(KONFIGURASYON_JSON_NAME)
-with open(KONFIGURASYON_JSON_NAME, 'r', encoding='utf-8') as f:
-    anahtar_ve_linkler = json.load(f)
-    HOCA_YORULMALA_LINKI = anahtar_ve_linkler.get(HOCA_YORUMLAMA_ANAHTARI, HOCA_YORULMALA_LINKI)
-    HOCA_OYLAMA_LINKI = anahtar_ve_linkler.get(HOCA_OYLAMA_ANAHTARI, HOCA_OYLAMA_LINKI)
-    DERS_YORUMLAMA_LINKI = anahtar_ve_linkler.get(DERS_YORUMLAMA_ANAHTARI, DERS_YORUMLAMA_LINKI)
-    DERS_OYLAMA_LINKI = anahtar_ve_linkler.get(DERS_OYLAMA_ANAHTARI, DERS_OYLAMA_LINKI)
-    DOKUMANLAR_REPO_YOLU = anahtar_ve_linkler.get(DOKUMANLAR_REPO_YOLU_ANAHTARI, DOKUMANLAR_REPO_YOLU)
-    ANA_README_YOLU = os.path.join(DOKUMANLAR_REPO_YOLU, README_MD)
-
 # GİRİŞ SAYFASI
 GERI_BILDIRIM_KISMI =f""" ## 🗣️ Geri Bildirimde Bulunun
 

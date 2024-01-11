@@ -101,8 +101,8 @@ with open(os.path.join(BIR_UST_DIZIN,json_file_path), 'r', encoding='utf-8') as 
 guncelle_ogrenci_gorusleri(data,DERS_YORUMLARI_DOSYASI)
 guncelle_ders_yildizlari(data, DERS_YILDIZLARI_DOSYASI)
 
-
-with open(os.path.join(json_file_path), 'w', encoding='utf-8') as file:
+json_file_name = os.path.basename(json_file_path)
+with open(json_file_name, 'w', encoding='utf-8') as file:
     json.dump(data, file, ensure_ascii=False, indent=4)
 # Dosyayı kopyalamak için:
-shutil.copy(json_file_path, os.path.join(BIR_UST_DIZIN,json_file_path))
+shutil.copy(json_file_name, os.path.join(BIR_UST_DIZIN,json_file_path))

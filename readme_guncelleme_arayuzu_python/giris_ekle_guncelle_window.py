@@ -15,7 +15,8 @@ class GirisEkleGuncelleWindow(YazarinNotlariWindow):
         aciklama = self.data.get(ACIKLAMA, VARSAYILAN_GIRIS_ACIKLAMA)
         self.baslikBtn.setText(kisaltMetin(baslik))
         self.baslikBtn.setToolTip(baslik)
-        self.aciklama_label = QLabel('Açıklama:', self)
+        self.aciklama_label = QLabel('Açıklama', self)
+        self.aciklama_label.setAlignment(Qt.AlignCenter)
         self.mainLayout.insertWidget(3, self.aciklama_label)
         self.aciklama_duzenle_btn = QPushButton(kisaltMetin(aciklama), self)
         self.aciklama_duzenle_btn.setStyleSheet(ACIKLAMA_BUTON_STILI)
@@ -162,6 +163,7 @@ class IcindekilerDuzenleWindow(QDialog):
         self.layout = QVBoxLayout(self)
         # başlık için label bileşeni
         self.baslik_label = QLabel('İçerik Başlığı', self)
+        self.baslik_label.setAlignment(Qt.AlignCenter)
         self.baslik_label.setToolTip('İçerik başlığı giriniz. (Örneği Hocalar)')
         self.layout.addWidget(self.baslik_label)
         # başlık için line edit bileşeni 
@@ -171,6 +173,7 @@ class IcindekilerDuzenleWindow(QDialog):
         self.layout.addWidget(self.baslik_input)
         # başlığa ait çapa için label bileşeni
         self.capa_label = QLabel('İçerik Çapası', self)
+        self.capa_label.setAlignment(Qt.AlignCenter)
         self.capa_label.setToolTip('İçerik çapası giriniz. (Örneği hocalar) Çapa, içerik başlığına tıklanınca sayfanın o kısmına gitmek için kullanılır.')
         self.layout.addWidget(self.capa_label)
         # başlığa ait çapa için line edit bileşeni

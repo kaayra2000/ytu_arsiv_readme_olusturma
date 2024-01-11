@@ -98,14 +98,25 @@ VARSAYILAN_ACIKLAMALAR_BOLUM_ADI = "Açıklamalar"
 # DOSYA ADLARI
 README_MD = "README.md"
 BIR_UST_DIZIN = ".."
+GOOGLE_FORM_ISLEMLERI = "google_forum_islemleri"
 JSON_DOSYALARI_DEPOSU_DOSYA_ADI = "json_depo_bilgileri.txt"
 JSON_DOSYALARI_DEPOSU_DOSYA_YOLU = os.path.join(BIR_UST_DIZIN, JSON_DOSYALARI_DEPOSU_DOSYA_ADI)
 JSON_DOSYALARI_DEPOSU = None
+README_GUNCELLEME_PYTHON = "readme_guncelleme_arayuzu_python"
 try:
-    if os.path.exists(JSON_DOSYALARI_DEPOSU_DOSYA_YOLU):
+   
+    curr_dir = os.getcwd()
+    curr_dir = os.path.basename(curr_dir)
+    if GOOGLE_FORM_ISLEMLERI in curr_dir or README_GUNCELLEME_PYTHON in curr_dir:
         tmp_json_depo_dosyasi = JSON_DOSYALARI_DEPOSU_DOSYA_YOLU
     else:
         tmp_json_depo_dosyasi = JSON_DOSYALARI_DEPOSU_DOSYA_ADI
+    if not os.path.exists(tmp_json_depo_dosyasi):
+        with open(tmp_json_depo_dosyasi, "w", encoding="utf-8") as json_depo_dosyasi:
+            json_depo_dosyasi.write(".")
+        
+
+
     with open(tmp_json_depo_dosyasi, "r", encoding="utf-8") as json_depo_dosyasi:
         for line in json_depo_dosyasi:
             if JSON_DOSYALARI_DEPOSU is not None:
@@ -155,7 +166,7 @@ try:
     with open(tmp_konf_path, "r", encoding="utf-8") as konf_dosyasi:
         tmp_konf = json.load(konf_dosyasi)
         VARSAYILAN_GITHUB_URL = tmp_konf[GITHUB_URL_ANAHTARI]
-        DOKUMANLAR_REPO_YOLU = os.path.join(JSON_DOSYALARI_DEPOSU, tmp_konf[DOKUMANLAR_REPO_YOLU_ANAHTARI])
+        DOKUMANLAR_REPO_YOLU = os.path.join(tmp_konf[DOKUMANLAR_REPO_YOLU_ANAHTARI])
         CIKMISLAR_LINKI = tmp_konf[CIKMISLAR_ANAHTARI]
         HOCA_OYLAMA_LINKI = tmp_konf[HOCA_OYLAMA_ANAHTARI]
         HOCA_YORULMALA_LINKI = tmp_konf[HOCA_YORUMLAMA_ANAHTARI]

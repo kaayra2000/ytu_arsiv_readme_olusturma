@@ -95,6 +95,14 @@ class GitIslemleriWindow(QDialog):
         self.run_script(bat_scripti, baslik = "Değişiklikler Github'a Pushlanıyor...")
 
     def update_interface(self):
+        # Git status kontrolü
+        stream = os.popen('git status')
+        output = stream.read()
+
+        # Değişiklik olup olmadığını kontrol et
+        if "nothing to commit, working tree clean" not in output:
+            QMessageBox.critical(None, "Hata", "Dizinde değişiklikler var. Lütfen önce bu değişiklikleri commit yapın veya geri alın.")
+            return
         self.run_script(ARAYUZU_GITHULA_ESITLE_BAT if self.is_windows else ARAYUZU_GITHULA_ESITLE_SH, baslik="Arayüz Kodları Güncelleniyor...")
 
     def start_routine_check(self):

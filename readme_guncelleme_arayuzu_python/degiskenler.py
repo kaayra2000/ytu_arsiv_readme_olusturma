@@ -96,6 +96,7 @@ VARSAYILAN_KAVRAMLAR_BOLUM_ADI = "Kavramlar"
 VARSAYILAN_ACIKLAMALAR_BOLUM_ADI = "Açıklamalar"
 
 # DOSYA ADLARI
+STIL_QSS = "stil.qss"
 README_MD = "README.md"
 BIR_UST_DIZIN = ".."
 GOOGLE_FORM_ISLEMLERI = "google_forum_islemleri"
@@ -202,13 +203,14 @@ DR = "Dr."
 # STİLLER
 
 ## BUTON STİLLERİ
-EKLE_BUTONU_STILI = "background-color: green; color: white;"
-SIL_BUTONU_STILI = "background-color: red; color: white;"
-TEMIZLE_BUTONU_STILI = "background-color: orange; color: white;"
-VEREN_EKLE_BUTONU_STILI = "background-color: lightblue;"
-GUNCELLE_BUTTON_STILI = "background-color: blue; color: white;"
-BASLIK_BUTON_STILI = "background-color: lightblue; color: black;"
-ACIKLAMA_BUTON_STILI = "background-color: lightgreen; color: black;"
+EKLE_BUTONU_STILI = "background-color: #27AE60; color: white;"          # Yeşil
+SIL_BUTONU_STILI = "background-color: #C0392B; color: white;"          # Kırmızı
+TEMIZLE_BUTONU_STILI = "background-color: #F39C12; color: white;"      # Turuncu
+VEREN_EKLE_BUTONU_STILI = "background-color: #3498DB; color: white;"   # Açık Mavi
+GUNCELLE_BUTTON_STILI = "background-color: #2980B9; color: white;"     # Mavi
+BASLIK_BUTON_STILI = "background-color: #95A5A6; color: white;"        # Açık Gri
+ACIKLAMA_BUTON_STILI = "background-color: #2ECC71; color: white;"      # Açık Yeşil
+
 
 
 # JSON ANAHTARLARI

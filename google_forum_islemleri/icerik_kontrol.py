@@ -13,9 +13,9 @@ from degiskenler import *
 
 def kelime_isle(kelime):
     # Küçük harfe çevir
-    kelime = kelime.lower()
+    kucuk_kelime = kelime.lower()
 
-    if kelime in KARA_LISTE:
+    if kucuk_kelime in KARA_LISTE:
         # Karalistede varsa, sansürlenmiş halini döndür
         return "[sansürlendi]"
     # Kelimeyi döndür

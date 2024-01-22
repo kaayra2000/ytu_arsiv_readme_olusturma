@@ -75,14 +75,15 @@ Bu bölümde, projenin arayüzünün nasıl çalıştırılacağı adım adım a
 
 1.  **Arayüzün Çalıştırılması:**  
     Yukarıdaki dosyalar hazırlandıktan sonra, Windows'ta arayüzü çalıştırmak için `arayuz.bat` dosyası açılmalıdır. Arayüz ekranlarının anlatımları:
-    <center>
-        <figure id="arayuz_ana_sayfa">
-            <img src="readme_fotolari/ana_sayfa.png" alt="ANA SAYFA">
-            <figcaption>Ana Sayfa Ekranı</figcaption>
-        </figure>
-    </center>
 
     1.  **Ana Sayfa Ekranı**
+
+          <center>
+            <figure id="arayuz_ana_sayfa">
+                <img src="readme_fotolari/ana_sayfa.png" alt="ANA SAYFA">
+                <figcaption>Ana Sayfa Ekranı</figcaption>
+            </figure>
+        </center>
 
         1. _Giriş Güncelle Butonu_
 
@@ -111,7 +112,7 @@ Bu bölümde, projenin arayüzünün nasıl çalıştırılacağı adım adım a
 
            - Bu buton ders dökümanları reposunun kök dizinindeki _README.md_ dosyasının **_Dersler_** kısmını manipüle edebilen ekranı açar. Aynı zamanda her **dönem klasörü** ve **ders klasörü** içindeki _README.md_ dosyalarının içeriğini de etkiler.[Ana Sayfa Ekranı](#arayuz_ana_sayfa)'nda 3 numaralı butona karşılık gelmektedir.
            - [README.md Ders Ekle/Güncelle Kök Dosyası Örneği](#readme_ders_ekle_guncelle_ornek)'ndeki _Dersler'in_, _Ders Tipi_, _Ders Adı_ ve _Dersi Yürüten Akademisyenler_ kısımları
-           - [README.md Ders Ekle/Güncelle Dönem Dosyası Örneği](#readme_ders_ekle_guncelle_donem_ornek) ve [README.md Ders Ekle/Güncelle Ders Dosyası Örneği](#readme_ders_ekle_guncelle_ders_ornek)'ndeki _Yıl_, _Dönem_, _Ders Tipi_ ve _Faydalı Olabilecek Kaynaklar_ kısımları [Ders Ekle/Güncelle Ekranından]() düzenlenebilir.
+           - [README.md Ders Ekle/Güncelle Dönem Dosyası Örneği](#readme_ders_ekle_guncelle_donem_ornek) ve [README.md Ders Ekle/Güncelle Ders Dosyası Örneği](#readme_ders_ekle_guncelle_ders_ornek)'ndeki _Yıl_, _Dönem_, _Ders Tipi_ ve _Faydalı Olabilecek Kaynaklar_ kısımları [Ders Ekle/Güncelle Ekranından](#ders_ekle_guncelle_ekrani) düzenlenebilir.
                <center>
                    <figure id="readme_ders_ekle_guncelle_ornek">
                        <img src="readme_fotolari/readme_ornekleri/ders_ekle_guncelle_ornek.png" alt="Ders Ekle Güncelle Örneği">
@@ -238,27 +239,27 @@ Bu bölümde, projenin arayüzünün nasıl çalıştırılacağı adım adım a
 
         1.  _Bölüm Adı Düzenle Butonu_
 
-            - Bu buton _Dersler_ bölümünün adını düzenlemeye yarayan [Dersler Bölüm Adı Düzenleme]() ekranını açar.
+            - Bu buton _Dersler_ bölümünün adını düzenlemeye yarayan [Dersler Bölüm Adı Düzenleme](#ders_ekrani_baslik_duzenle) ekranını açar.
 
         1.  _Açıklama Düzenle Butonu_
 
-            - Bu buton _Dersler_ bölümünün açıklamasını düzenlemeye yarayan [Dersler Açıklama Düzenleme]() ekranını açar.
+            - Bu buton _Dersler_ bölümünün açıklamasını düzenlemeye yarayan [Dersler Açıklama Düzenleme](#ders_ekrani_aciklama_duzenle) ekranını açar.
 
         1.  _Ders Ekle Butonu_
 
-            - Bu buton _Dersler_ bölümündeki dersler arasına ders eklemeyi sağlayan [Ders Ekleme]() ekranını açar.
+            - Bu buton _Dersler_ bölümündeki dersler arasına ders eklemeyi sağlayan [Ders Ekleme](#ders_ekrani_ders_ekle) ekranını açar.
 
         1.  _Dersler İçinde Yer Alan Ders Adını İçeren Buton_
 
-            - Bu buton _Dersler_ bölümündeki ilgili dersi düzenlemeye yarayan [Ders Düzenleme]() ekranını açar.
+            - Bu buton _Dersler_ bölümündeki ilgili dersi düzenlemeye yarayan [Ders Düzenleme](#ders_ekrani_ders_duzenle) ekranını açar.
 
         1.  _Dersler İçinde Yer Alan Ders Adının Karşısındaki Kaynak Ekle/Güncelle Butonu_
 
-            - Bu buton _Dersler_ bölümündeki ilgili dersin kaynaklarını düzenlemeye yarayan [Kaynak Ekle/Güncelle]() ekranını açar.
+            - Bu buton _Dersler_ bölümündeki ilgili dersin kaynaklarını düzenlemeye yarayan [Kaynak Ekle/Güncelle](#ders_ekrani_kaynak_ekrani) ekranını açar.
 
         1.  _Dersler İçinde Yer Alan Ders Adının Karşısındaki Öneri Ekle/Güncelle Butonu_
 
-            - Bu buton _Dersler_ bölümündeki ilgili dersin önerilerini düzenlemeye yarayan [Öneri Ekle/Güncelle]() ekranını açar.
+            - Bu buton _Dersler_ bölümündeki ilgili dersin önerilerini düzenlemeye yarayan [Öneri Ekle/Güncelle](#ders_ekrani_oneri_ekrani) ekranını açar.
 
     1.  **Hoca Ekle/Güncelle Ekranı**
         <center>
@@ -338,11 +339,11 @@ Bu bölümde, projenin arayüzünün nasıl çalıştırılacağı adım adım a
 
         1.  _Dönem Ekle Butonu_
 
-            - Bu buton _Dönemler_ alanının dönemleri arasına yeni dönem bulunan eklemeye yarayan [Dönemler Dönem Ekle]() ekranını açar.
+            - Bu buton _Dönemler_ alanının dönemleri arasına yeni dönem bulunan eklemeye yarayan [Dönemler Dönem Ekle/Düzenle](#donem_ekle_guncelle_ekrani_donem_duzenleme) ekranını açar.
 
         1.  _Dönemler İçinde Yer Alan Herhangi Bir Buton_
 
-            - Bu buton _Dönemler_ bölümündeki ilgili dönemi düzenlemeye yarayan [Dönemler Dönem Düzenleme]() ekranını açar.
+            - Bu buton _Dönemler_ bölümündeki ilgili dönemi düzenlemeye yarayan [Dönemler Dönem Ekle/Düzenle](#donem_ekle_guncelle_ekrani_donem_duzenleme) ekranını açar.
 
     1.  **Git İşlemleri Ekranı**
         <center>
@@ -367,28 +368,134 @@ Bu bölümde, projenin arayüzünün nasıl çalıştırılacağı adım adım a
         1.  _Değişiklikleri Github'a Pushla_
             - Bu buton yereldeki ders reposundaki tüm değişiklikleri githuba göndermeye yarayan [Değişiklikleri Pushlama]() ekranını açar.
 
-    1.  **Arayüz Butonlarının İşlevleri:**
+    1.  **Dersler Açıklama Düzenleme**
+        <center>
+            <figure id="ders_ekrani_aciklama_duzenle">
+                <img src="readme_fotolari/ders_ekrani_aciklama_duzenle.png" alt="Dersler Açıklama Düzenleme Ekranı">
+                <figcaption>Dersler Açıklama Düzenleme Ekranı</figcaption>
+            </figure>
+         </center>
 
-    - **Giriş Güncelle:**
-    - Kök dizindeki README.md dosyasının girişle ilgili kısımlarını düzenleme ekranını açar.
-    - Ekranda şunlar bulunur:
-      - **Başlık:** Giriş kısmının başlığı.
-      - **Açıklama:** Giriş kısmının açıklaması.
-      - **İçindekiler Ekle:** İçindekiler çapası ekleme işleminin yapıldığı ekran. Örneğin, [Repo Kullanımı](#-repo-kullanımı) tıklandığında doğrudan o başlığa gitmeyi sağlayan çapa oluşturulur. Bu ekranda "İçerik Başlığı" gözükecek başlığı, "İçerik Çapası" ise gidilecek çapayı temsil eder.
-      - **İçindekiler:** Düzenlenmek istenen içindekiler elemanına tıklanır ve düzenleme ekranı açılır. Ekleme ekranıyla aynı ekran açılır.
-    - **Repo Kullanımı Düzenle:**
-      - Repoyla alakalı kullanıcıya bilgi verme işi bu ekranda yapılır.
-      - **Başlık:** Burada "Repo Kullanımı" kısmının başlığı düzenlenir.
-      - **Talimat Ekle/Düzenle:** Talimat ekleme-düzenleme işlemi yapılır. Tıklandığında talimat ekleme-düzenleme ekranı açılır. Bu ekranda:
-      - **Talimatlar:** Düzenlenmek istenen talimatın üstüne tıklanır ve düzenleme ekranı açılır. Burada talimatın yeni hali girilip kaydedilebilir. Sil butonuyla ilgili talimat silinir.
-      - **Talimat Ekle:** Bu buton talimat ekleme ekranını açar.
-      - **Kavram Ekle/Düzenle:** Kavram ekleme-düzenleme işlemi yapılır. Tıklandığında kavram ekleme ekranı açılır. Bu ekranda:
-      - **Kavramlar:** Açıklamaları düzenlenmek istenen kavramın üstüne tıklanır. Üstüne tıklanan kavramın açıklamalar düzenleme ekranı açılır. Bu ekranda:
-      - **Açıklamalar:** Düzenlenmek istenen açıklamanın düzenle butonuna basılır. Silinmek istenen açıklamanın sil butonuna basılır.
-      - **Açıklama Ekle Butonu:** Bu buton ilgili kavram için açıklama ekle ekranına yönlendirir.
-      - Kavramın yanında **Adı Düzenle** butonu bulunur. Butona tıklanınca ilgili kavramın adını düzenlemek için ekran açılır. Onun yanında da sil butonu bulunur. Bu da ilgili kavramı silmeye yarar.
-      - **Kavram Ekle:** Bu buton kavram ekleme ekranına yönlendirir.
-      - **Açıklama Ekle/Düzenle:**
-      - Bu repo ile ilgili açıklama ekleme/düzenleme ekranına yönlendirir. Bu ekranda:
-      - **Açıklamalar:** Düzenlenmek istenen açıklamanın üstüne tıklanırsa düzenleme ekranı açılır. Silinmek istenen açıklamanın sağındaki sil butonuna tıklanabilir.
-      - **Açıklama Ekle:** Açıklama ekleme işlemini gerçekleştirir.
+        1. _Bölüm Açıklamasını Giriniz_
+           - Değiştirilmek istenen _Bölüm Açıklaması_ buraya girilir ve _**OK**_ butonuna basılıp kaydedilir.
+
+    1.  **Dersler Bölüm Adı Düzenleme**
+        <center>
+            <figure id="ders_ekrani_baslik_duzenle">
+                <img src="readme_fotolari/ders_ekrani_baslik_duzenle.png" alt="Dersler Bölüm Adı Düzenleme Ekranı">
+                <figcaption>Dersler Bölüm Adı Düzenleme Ekranı</figcaption>
+            </figure>
+         </center>
+
+        1. _Bölüm Adını Giriniz_
+           - Değiştirilmek istenen _Bölüm Adı_ buraya girilir ve _**OK**_ butonuna basılıp kaydedilir.
+
+    1.  **Ders Düzenleme**
+        <center>
+            <figure id="ders_ekrani_ders_duzenle">
+                <img src="readme_fotolari/ders_ekrani_ders_duzenle.png" alt="Ders Düzenleme Ekranı">
+                <figcaption>Ders Düzenleme Ekranı</figcaption>
+            </figure>
+         </center>
+
+        1. _Ders Adı_
+           - Dersin adı buraya girilir.
+        2. _Yıl_
+           - Dersin yılı buraya girilir.
+        3. _Dönem_
+           - Dersin dönemi seçilir.
+        4. _Ders Güncel Mi?_
+           - Ders şu an güncel müfredatta varsa _**True**_ yoksa _**False**_ seçilir.
+        5. _Tip_
+           - Dersin tipi buradan seçilir.
+        6. _Dersi Veren Hoca Ekle Butonu_
+           - Dersi veren hoca eklemek için bu buton kullanılır. Sonrasında _Dersi Veren Hocalar_'a gelen seçme alanından hocanın adı seçilir.
+        7. _Değişiklikleri Kaydet_
+           - Yapılan değişiklikler eğer kaydedilmek isteniyorsa bu buton kullanılmalıdır.
+        8. _Dersi Sil_
+           - Eğer ders silinmek isteniyorsa bu buton kullanılmalıdır.
+
+    1.  **Ders Ekleme**
+        <center>
+            <figure id="ders_ekrani_ders_ekle">
+                <img src="readme_fotolari/ders_ekrani_ders_ekle.png" alt="Ders Ekleme Ekranı">
+                <figcaption>Ders Ekleme Ekranı</figcaption>
+            </figure>
+         </center>
+
+        1. _Ders Adı_
+           - Dersin adı buraya girilir.
+        2. _Yıl_
+           - Dersin yılı buraya girilir.
+        3. _Dönem_
+           - Dersin dönemi seçilir.
+        4. _Ders Güncel Mi?_
+           - Ders şu an güncel müfredatta varsa _**True**_ yoksa _**False**_ seçilir.
+        5. _Tip_
+           - Dersin tipi buradan seçilir.
+        6. _Dersi Veren Hoca Ekle Butonu_
+           - Dersi veren hoca eklemek için bu buton kullanılır. Sonrasında _Dersi Veren Hocalar_'a gelen seçme alanından hocanın adı seçilir.
+        7. _Ekle_
+           - Yapılan değişiklikler eğer kaydedilmek isteniyorsa bu buton kullanılmalıdır.
+
+    1.  **Kaynak Ekle/Güncelle**
+        <center>
+            <figure id="ders_ekrani_kaynak_ekrani">
+                <img src="readme_fotolari/ders_ekrani_kaynak_ekrani.png" alt="Kaynak Ekle/Güncelle Ekranı">
+                <figcaption>Kaynak Ekle/Güncelle Ekranı</figcaption>
+            </figure>
+         </center>
+
+        1.  _Ekle_
+            - Bu buton _Dersler_ bölümündeki ilgili derse kaynak eklemeye yarayan [Dersler Kaynak Ekleme]() ekranını açar.
+        1.  _Kaynaklar İçinde Yer Alan Herhangi Bir Buton_
+
+            - Bu buton _Dersler_ bölümündeki ilgili dersin ilgili kaynağını düzenlemeye yarayan [Dersler Kaynak Düzenleme]() ekranını açar.
+
+    1.  **Öneri Ekle/Güncelle**
+        <center>
+            <figure id="ders_ekrani_oneri_ekrani">
+                <img src="readme_fotolari/ders_ekrani_oneri_ekrani.png" alt="Öneri Ekle/Güncelle Ekranı">
+                <figcaption>Öneri Ekle/Güncelle Ekranı</figcaption>
+            </figure>
+         </center>
+
+        1.  _Ekle_
+            - Bu buton _Dersler_ bölümündeki ilgili derse öneri eklemeye yarayan [Dersler Öneri Ekleme/Düzenleme](#ders_ekrani_oneri_ekrani_ekle) ekranını açar.
+        1.  _Öneriler İçinde Yer Alan Herhangi Bir Buton_
+
+            - Bu buton _Dersler_ bölümündeki ilgili dersin ilgili önerisini düzenlemeye yarayan [Dersler Öneri Ekleme/Düzenleme](#ders_ekrani_oneri_ekrani_ekle) ekranını açar.
+
+    1.  **Dersler Öneri Ekleme/Düzenleme**
+        <center>
+            <figure id="ders_ekrani_oneri_ekrani_ekle">
+                <img src="readme_fotolari/ders_ekrani_oneri_ekrani_ekle.png" alt="Dersler Öneri Ekleme/Düzenleme  Ekranı">
+                <figcaption>Dersler Öneri Ekleme/Düzenleme Ekranı</figcaption>
+            </figure>
+         </center>
+
+        1.  _Öneri Sahibi_
+            - Öneri sahibinin _**adı/nicki**_'ni buraya yazmalısın.
+        1.  _Öneri_
+            - Dersle ilgili önerini buraya yazmalısın.
+        1.  _Kaydet Butonu_
+            - Yapılan değişiklikleri kaydetmek için bu butonu kullanmalısın.
+
+    1.  **Dönemler Dönem Ekle/Düzenle**
+        <center>
+            <figure id="donem_ekle_guncelle_ekrani_donem_duzenleme">
+                <img src="readme_fotolari/donem_ekle_guncelle_ekrani_donem_duzenleme.png" alt="Dönemler Dönem Ekle/Düzenle  Ekranı">
+                <figcaption>Dönemler Dönem Ekle/Düzenle Ekranı</figcaption>
+            </figure>
+         </center>
+
+        1.  _Dönem Adı_
+            - Dönem'in _**README.md**_'de gözükecek adı.
+        1.  _Yıl_
+            - Dönemin ait olduğu yıl.
+        1.  _Dönem_
+            - Dönemin ait olduğu dönem.
+        1.  _Genel Tavsiye Ekle_
+            - Tavsiyeler arasına bir yenisini ekler. Silmek için yanındaki **_Sil_** butonuna tıklayabilirsin.
+        1.  _Kaydet Butonu_
+            - Kaydetmeye yarayan buton.

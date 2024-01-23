@@ -191,11 +191,20 @@ class CMDScriptRunnerThread(QThread):
 
     def run(self):
         try:
-            result = os.system(self.cmd)
-            if result == 0:
-                self.finished.emit("İşlem başarıyla tamamlandı")
-            else:
-                self.error.emit(f"Komut başarısız oldu, çıkış kodu: {result}")
+            # Komutu subprocess.Popen ile çalıştır
+            with subprocess.Popen(self.cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as process:
+                # stdout'tan sürekli olarak veri oku
+                for line in process.stdout:
+                    self.info.emit(line.strip())
+
+                # İşlem tamamlandığında çıkış kodunu kontrol et
+                process.wait()
+                if process.returncode == 0:
+                    self.finished.emit("İşlem başarıyla tamamlandı")
+                else:
+                    # stderr'den hata mesajlarını oku ve emit et
+                    error_message = process.stderr.read().strip()
+                    self.error.emit(f"Komut başarısız oldu, çıkış kodu: {process.returncode}, Hata: {error_message}")
 
         except Exception as e:
             self.error.emit(f"Hata oluştu: {str(e)}")

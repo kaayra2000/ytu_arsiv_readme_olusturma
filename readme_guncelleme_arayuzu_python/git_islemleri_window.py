@@ -83,16 +83,16 @@ class GitIslemleriWindow(QDialog):
             return
         self.original_dir = os.getcwd()
         os.chdir(dizin)
-        progress = CustomProgressDialog(baslik, self)
+        self.progress_dialog = CustomProgressDialog(baslik, self)
         # Thread'i başlat
         self.thread = CMDScriptRunnerThread(script_path)
-        self.thread.finished.connect(progress.close)
-        self.thread.error.connect(progress.close)
+        self.thread.finished.connect(self.progress_dialog.close)
+        self.thread.error.connect(self.progress_dialog.close)
         self.thread.finished.connect(self.on_finished)
         self.thread.error.connect(self.on_error)
         self.thread.info.connect(self.info)
         self.thread.start()
-        progress.show()
+        self.progress_dialog.show()
 
     def on_finished(self, output):
         QMessageBox.information(self, "Başarılı", output)
@@ -103,7 +103,7 @@ class GitIslemleriWindow(QDialog):
         os.chdir(self.original_dir)
 
     def info(self, message):
-        None
+        self.progress_dialog.setLabelText(message)
 
     def update_google_form(self):
         komut = "python3 hoca_icerikleri_guncelle.py"

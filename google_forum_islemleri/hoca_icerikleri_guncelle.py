@@ -8,6 +8,8 @@ import sys
 from csv_kontrol_et import csv_kontrol_et
 import time
 
+print("Hoca içerikleri güncelleniyor...")
+
 # Mevcut dosyanın bulunduğu dizini al
 current_directory = os.path.dirname(os.path.abspath(__file__))
 # Göreceli yol (örneğin, bu dizinden 'readme_guncelleme_arayuzu_python' klasörüne giden yol)
@@ -174,3 +176,4 @@ with open(json_file_name, "w", encoding="utf-8") as file:
 
 # Dosyayı kopyalamak için:
 shutil.copy(json_file_name, os.path.join(BIR_UST_DIZIN, json_file_path))
+print("Hoca içerikleri güncellendi.")

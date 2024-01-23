@@ -185,11 +185,11 @@ class CMDScriptRunnerThread(QThread):
     error = pyqtSignal(str)
     info = pyqtSignal(str)
 
-    def __init__(self, cmd):
+    def __init__(self, cmd, baslik = None):
         super().__init__()
         self.cmd = cmd
         self.calismaya_devam_et = True
-        
+        self.baslik = baslik
     def run(self):
         try:
             # Komutu subprocess.Popen ile çalıştır
@@ -199,9 +199,11 @@ class CMDScriptRunnerThread(QThread):
                 # stdout'tan sürekli olarak veri oku
                 while True:
                     if not self.calismaya_devam_et:
+                        mesaj = "İşlem kullanıcı tarafından iptal edildi."
+                        bilgi = mesaj if self.baslik is None else f"{self.baslik}\n{mesaj}"
                         # Süreci durdur
                         process.terminate()  # ya da process.kill() kullanılabilir
-                        self.error.emit("İşlem kullanıcı tarafından iptal edildi.")
+                        self.error.emit(bilgi)
                         return
                     reads = [process.stdout.fileno(), process.stderr.fileno()]
                     readable, _, _ = select.select(reads, [], [])
@@ -227,6 +229,8 @@ class CMDScriptRunnerThread(QThread):
                 if process.returncode == 0:
                     self.finished.emit(f"İşlem başarıyla tamamlandı.\nSon Mesaj: {son_bilgi_mesaj}")
                 else:
+                    if son_hata_mesaj == "":
+                        son_hata_mesaj = son_bilgi_mesaj
                     # stderr'den hata mesajlarını oku ve emit et
                     self.error.emit(f"Komut başarısız oldu, çıkış kodu: {process.returncode}, Hata: {son_hata_mesaj}")
 

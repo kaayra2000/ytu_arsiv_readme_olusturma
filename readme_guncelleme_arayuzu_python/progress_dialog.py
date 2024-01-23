@@ -1,5 +1,6 @@
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QProgressDialog, QPushButton, QVBoxLayout, QDialog, QMessageBox
+from PyQt5.QtWidgets import QProgressDialog, QPushButton
+from PyQt5.QtCore import QEvent
 
 
 class CustomProgressDialog(QProgressDialog):
@@ -34,35 +35,21 @@ class CustomProgressDialog(QProgressDialog):
 
         # Sürekli dönen bir hale getir
         self.setRange(0, 0)
-class CustomProgressDialogWithCancel(QDialog):
+class CustomProgressDialogWithCancel(CustomProgressDialog):
     def __init__(self, title, parent=None, fonksiyon = None):
-        super().__init__(parent)
-        self.progress_dialog = CustomProgressDialog(title, parent)
-        self.progress_dialog.setModal(False)
-        self.setWindowModality(Qt.WindowModal)
-        self.setWindowFlags(Qt.FramelessWindowHint | Qt.Dialog)
+        super().__init__(title, parent)
         self.fonksiyon = fonksiyon
-        self.iptale_basildi = False
-        self.init_ui()
+        self.initUI()
 
-    def init_ui(self):
-        layout = QVBoxLayout()
+    def initUI(self):
         # İptal butonunu oluştur ve bağla
         self.iptal_butonu = QPushButton("İptal", self)
-        self.iptal_butonu.clicked.connect(self.fonksiyon)
+        self.setCancelButton(self.iptal_butonu)
+        # İptal butonunun tıklama olayını engellemek için event filter ekleyin
+        self.iptal_butonu.installEventFilter(self)
+    def eventFilter(self, obj, event):
+        if obj == self.iptal_butonu and event.type() == QEvent.MouseButtonPress:
+            self.fonksiyon()
+            return True
 
-        # ProgressBar ve İptal butonunu layout'a ekle
-        layout.addWidget(self.progress_dialog)
-        layout.addWidget(self.iptal_butonu)
-
-        # Layout'u pencereye ayarla
-        self.setLayout(layout)
-    def close(self):
-        self.progress_dialog.close()
-        super().close()
-
-    def closeEvent(self, event):
-        self.close()
-        super().closeEvent(event)
-    def setLabelText(self, text):
-        self.progress_dialog.setLabelText(text)
+        return super().eventFilter(obj, event)

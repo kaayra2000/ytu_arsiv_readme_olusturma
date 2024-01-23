@@ -85,7 +85,7 @@ class GitIslemleriWindow(QDialog):
         os.chdir(dizin)
         self.progress_dialog = CustomProgressDialogWithCancel(baslik, self, self.thread_durduruluyor)
         # Thread'i başlat
-        self.thread = CMDScriptRunnerThread(script_path)
+        self.thread = CMDScriptRunnerThread(script_path,islem)
         self.thread.finished.connect(self.progress_dialog.close)
         self.thread.error.connect(self.progress_dialog.close)
         self.thread.finished.connect(self.on_finished)
@@ -103,7 +103,7 @@ class GitIslemleriWindow(QDialog):
         if cevap == QMessageBox.No:
             return
         self.progress_dialog.setLabelText("İşlem durduruluyor...")
-        self.progress_dialog.iptal_butonu.setEnabled(False)
+        self.progress_dialog.setCancelButton(None)
         self.thread.durdur()
     def on_finished(self, output):
         QMessageBox.information(self, "Başarılı", output)

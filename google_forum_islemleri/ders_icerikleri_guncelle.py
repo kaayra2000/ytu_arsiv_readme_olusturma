@@ -7,7 +7,7 @@ import sys
 from csv_kontrol_et import csv_kontrol_et
 import time
 
-sys.stdout.write("Ders içerikleri güncelleniyor...")
+sys.stdout.write("Ders içerikleri güncelleniyor...\n")
 
 # Mevcut dosyanın bulunduğu dizini al
 current_directory = os.path.dirname(os.path.abspath(__file__))
@@ -49,7 +49,7 @@ def guncelle_ogrenci_gorusleri(data, sheets_url):
     if not csv_kontrol_et(
         df, [ZAMAN_DAMGASI, DERS_SEC, ISMIN_NASIL_GORUNSUN, DERS_HAKKINDAKI_YORUMUN]
     ):
-        sys.stderr.write("CSV dosyası hatalı, script durduruluyor.")
+        sys.stderr.write("CSV dosyası hatalı, script durduruluyor.\n")
         exit(1)
     df = df.dropna()  # NaN içeren tüm satırları kaldır
     # Her ders için yorumları güncelle
@@ -85,7 +85,7 @@ def guncelle_ders_yildizlari(data, sheets_url):
         # Veriyi indir ve DataFrame olarak oku
         yildizlar_df = pd.read_csv(sheets_url)
     except Exception as e:
-        sys.stderr.write(f"CSV dosyası okunurken hata oluştu: {e}")
+        sys.stderr.write(f"CSV dosyası okunurken hata oluştu: {e}\n")
         exit(1)
     # Mevcut sütun isimlerini alın
     mevcut_sutun_isimleri = yildizlar_df.columns
@@ -110,7 +110,7 @@ def guncelle_ders_yildizlari(data, sheets_url):
             DERS_MESLEKI_ACIDAN_GEREKLI_MI,
         ],
     ):
-        sys.stderr.write("CSV dosyası hatalı, script durduruluyor.")
+        sys.stderr.write("CSV dosyası hatalı, script durduruluyor.\n")
         exit(1)
 
     # Sadece sayısal sütunları al ve ortalama hesapla
@@ -158,4 +158,4 @@ with open(json_file_name, "w", encoding="utf-8") as file:
 # Dosyayı kopyalamak için:
 shutil.copy(json_file_name, os.path.join(BIR_UST_DIZIN, json_file_path))
 
-sys.stdout.write("Ders içerikleri güncellendi.")
+sys.stdout.write("Ders içerikleri güncellendi.\n")

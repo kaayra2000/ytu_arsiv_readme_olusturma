@@ -65,6 +65,14 @@ Bu yapıya göre, JSON dosyaları `YTU_Bilgisayar_Muhendisligi_Arsiv/json_dosyal
 }
 ```
 
+**Not:** Google Form oluşturmadan önce tüm hoca ve dersleri [Hoca Ekleme Ekranı](#hoca_ekle_guncelle_ekrani) ve [Ders Ekleme Ekranı](#ders_ekle_guncelle_ekrani)'ndan ekleyip sonrasında [Hoca ve Dersler Listesi Ekranı](#git_islemleri_ekrani_hocalar_ve_dersler_listesi)'ndan doğrudan _Hoca_ ve _Ders_ listelerini kopyalayabilirsiniz. Sonrasında kopyaladığınız seçenekleri _Google Form_ anket düzeleme ekranınızdaki _Hoca Seç_ ve _Ders Seç_ listenize yapıştırabilirsiniz.
+
+<p align="center">
+    <img src="readme_fotolari/readme_ornekleri//google_form_ornek.png" alt="Hoca ve Dersler Listesi Ekranı">
+    <br>
+    <strong>Google Form Ders Listesi</strong>
+</p>
+
 - `github_url`: Bu anahtarın karşısına ders dökümanlarının tutulduğu GitHub reposunun adresini ekleyin.
 - `hoca_yorumlama`: Bu anahtara, hoca yorumlamak için oluşturulan Google Form anketinin linkini ekleyin. Eğer anket henüz oluşturulmadıysa, soru tipleri ve sıralaması [bu örnektekiyle](https://forms.gle/WbwDxHUz6ebJA7t36) birebir aynı olmalıdır.
 - `hoca_oylama`: Bu anahtara, hoca oylamak için oluşturulan Google Form anketinin linkini ekleyin. Eğer anket henüz oluşturulmadıysa, soru tipleri ve sıralaması [bu örnektekiyle](https://forms.gle/s6ZMrQG4q578pEzm7) birebir aynı olmalıdır.

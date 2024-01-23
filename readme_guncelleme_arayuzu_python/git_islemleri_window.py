@@ -1,6 +1,6 @@
 import sys
 import os
-import subprocess
+import textwrap
 from PyQt5.QtWidgets import (
     QDialog,
     QVBoxLayout,
@@ -102,8 +102,12 @@ class GitIslemleriWindow(QDialog):
         QMessageBox.critical(self, "Hata", errors)
         os.chdir(self.original_dir)
 
-    def info(self, message):
-        self.progress_dialog.setLabelText(message)
+    def info(self, message, maxlen=20):
+        # Mesajı belirli bir uzunlukta parçalara ayır, kelimeleri tam böl
+        wrapped_message = textwrap.fill(message, maxlen)
+
+        # Güncellenmiş mesajı etiket metni olarak ayarla
+        self.progress_dialog.setLabelText(wrapped_message)
 
     def update_google_form(self):
         komut = "python3 hoca_icerikleri_guncelle.py"

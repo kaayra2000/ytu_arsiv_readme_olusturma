@@ -193,18 +193,32 @@ class CMDScriptRunnerThread(QThread):
         try:
             # Komutu subprocess.Popen ile çalıştır
             with subprocess.Popen(self.cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as process:
+                son_hata_mesaj = ""
+                son_bilgi_mesaj = ""
                 # stdout'tan sürekli olarak veri oku
-                for line in process.stdout:
-                    self.info.emit(line.strip())
+                while True:
+                    # stdout'tan ve stderr'dan sürekli olarak veri oku
+                    stdout_line = process.stdout.readline().strip()
+                    stderr_line = process.stderr.readline().strip()
+                    
+                    # Eğer stdout ve stderr boş ise işlem tamamlanmış demektir
+                    if not stdout_line and not stderr_line:
+                        break
 
+                    # stdout ve stderr satırlarını işleyebilirsiniz
+                    if stdout_line:
+                        self.info.emit(stdout_line)
+                        son_bilgi_mesaj = stdout_line
+                    if stderr_line:
+                        self.info.emit(stderr_line)
+                        son_hata_mesaj = stderr_line
                 # İşlem tamamlandığında çıkış kodunu kontrol et
                 process.wait()
                 if process.returncode == 0:
-                    self.finished.emit("İşlem başarıyla tamamlandı")
+                    self.finished.emit(f"İşlem başarıyla tamamlandı.\nSon Mesaj: {son_bilgi_mesaj}")
                 else:
                     # stderr'den hata mesajlarını oku ve emit et
-                    error_message = process.stderr.read().strip()
-                    self.error.emit(f"Komut başarısız oldu, çıkış kodu: {process.returncode}, Hata: {error_message}")
+                    self.error.emit(f"Komut başarısız oldu, çıkış kodu: {process.returncode}, Hata: {son_hata_mesaj}")
 
         except Exception as e:
             self.error.emit(f"Hata oluştu: {str(e)}")

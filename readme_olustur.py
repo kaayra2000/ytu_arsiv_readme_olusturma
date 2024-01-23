@@ -134,17 +134,17 @@ def hocalari_readme_ye_ekle(bilgiler):
     if HOCALAR not in bilgiler or len(bilgiler[HOCALAR]) != 0:
         bilgiler[HOCALAR] = [hoca for hoca in bilgiler[HOCALAR] if hoca[AD] != ""]
     else:
-        print("Hoca bilgileri bulunamadı.")
+        sys.stderr.write("Hoca bilgileri bulunamadı.")
         return
     with open(ANA_README_YOLU, "a", encoding="utf-8") as f:
         if BOLUM_ADI in bilgiler:
             f.write(f"\n\n\n## 🎓 {bilgiler[BOLUM_ADI]}\n")
         else:
-            print("Hocalar Bölüm adı bulunamadı.")
+            sys.stderr.write("Hocalar Bölüm adı bulunamadı.")
         if BOLUM_ACIKLAMASI in bilgiler:
             f.write(f"📚 {bilgiler[BOLUM_ACIKLAMASI]}\n\n\n\n")
         else:
-            print("Hocalar Bölüm açıklaması bulunamadı.")
+            sys.stderr.write("Hocalar Bölüm açıklaması bulunamadı.")
         en_populer_hoca_oy_sayisi = 0
         en_populer_hoca_adi = ""
         if EN_POPULER_HOCA in bilgiler and HOCA_ADI in bilgiler[EN_POPULER_HOCA]:
@@ -153,9 +153,9 @@ def hocalari_readme_ye_ekle(bilgiler):
                 en_populer_hoca_oy_sayisi = bilgiler[EN_POPULER_HOCA][OY_SAYISI]
             else:
                 en_populer_hoca_oy_sayisi = 1
-                print("En popüler hoca oy sayısı bulunamadı.")
+                sys.stderr.write("En popüler hoca oy sayısı bulunamadı.")
         else:
-            print("En popüler hoca bilgileri bulunamadı.")
+            sys.stderr.write("En popüler hoca bilgileri bulunamadı.")
 
         for hoca in sorted(bilgiler[HOCALAR], key=hoca_siralama_anahtari):
             if AD not in hoca:
@@ -282,7 +282,7 @@ def dersleri_readme_ye_ekle(dersler):
         elif TIP in ders:
             donem_key = ders[TIP]
         else:
-            print("Ders bilgileri bulunamadı.")
+            sys.stderr.write("Ders bilgileri bulunamadı.")
             continue
         if donem_key not in gruplanmis_dersler:
             gruplanmis_dersler[donem_key] = []
@@ -478,7 +478,7 @@ def sıralama_anahtarı(ders):
 """
 BURASI ANA README OLUŞTURMA KISMI
 """
-print("README.md oluşturuluyor...")
+sys.stdout.write("README.md oluşturuluyor...")
 # JSON dosyasından yazar notlarını oku ve README'ye ekle
 yazar_notlari = json_oku(YAZARIN_NOTLARI_JSON_NAME)
 # JSON dosyasından repo kullanımı bilgilerini oku ve README'ye ekle
@@ -491,39 +491,39 @@ hocalar = json_oku(HOCALAR_JSON_NAME)
 giris_bilgileri = json_oku(GIRIS_JSON_NAME)
 katkida_bulunanlar = json_oku(KATKIDA_BULUNANLAR_JSON_NAME)
 if giris_bilgileri is not None:
-    print("Giriş bilgileri README'ye ekleniyor...")
+    sys.stdout.write("Giriş bilgileri README'ye ekleniyor...")
     readme_ye_giris_ekle(giris_bilgileri)
 else:
-    print("Giriş bilgileri bulunamadı...")
+    sys.stdout.write("Giriş bilgileri bulunamadı...")
 if repo_kullanimi_bilgileri is not None:
-    print("Repo kullanımı README'ye ekleniyor...")
+    sys.stdout.write("Repo kullanımı README'ye ekleniyor...")
     readme_ye_repo_kullanimi_ekle(repo_kullanimi_bilgileri)
 else:
-    print("Repo kullanımı bilgileri bulunamadı...")
+    sys.stderr.write("Repo kullanımı bilgileri bulunamadı...")
 if dersler is not None:
-    print("Ders bilgileri README'ye ekleniyor...")
+    sys.stdout.write("Ders bilgileri README'ye ekleniyor...")
     dersleri_readme_ye_ekle(dersler)
 if hocalar is not None:
-    print("Hoca bilgileri README'ye ekleniyor...")
+    sys.stdout.write("Hoca bilgileri README'ye ekleniyor...")
     hocalari_readme_ye_ekle(hocalar)
 else:
-    print("Hoca bilgileri bulunamadı...")
+    sys.stderr.write("Hoca bilgileri bulunamadı...")
 if yazar_notlari is not None:
-    print("Yazar notları README'ye ekleniyor...")
+    sys.stdout.write("Yazar notları README'ye ekleniyor...")
     readme_ye_yazar_notlari_ekle(yazar_notlari)
 else:
-    print("Yazar notları bulunamadı...")
+    sys.stderr.write("Yazar notları bulunamadı...")
 if hocalar is not None:
-    print("Hoca kısaltmaları README'ye ekleniyor...")
+    sys.stdout.write("Hoca kısaltmaları README'ye ekleniyor...")
     readmeye_hocalar_icin_kisaltmalar_ekle(hocalar)
 else:
-    print("Hoca kısaltmaları bulunamadı...")
+    sys.stderr.write("Hoca kısaltmaları bulunamadı...")
 if katkida_bulunanlar is not None:
-    print("Katkıda bulunanlar README'ye ekleniyor...")
+    sys.stdout.write("Katkıda bulunanlar README'ye ekleniyor...")
     readme_katkida_bulunanlar_ekle(katkida_bulunanlar)
 else:
-    print("Katkıda bulunanlar bulunamadı...")
-print("Star history README'ye ekleniyor...")
+    sys.stderr.write("Katkıda bulunanlar bulunamadı...")
+sys.stdout.write("Star history README'ye ekleniyor...")
 readmeye_star_history_ekle()
 """
 BURASI ANA README OLUŞTURMA KISMI
@@ -620,9 +620,9 @@ def klasorde_baska_dosya_var_mi(ders_klasoru):
 
 
 if dersler is not None:
-    print("Dersler README.md oluşturuluyor...")
+    sys.stdout.write("Dersler README.md oluşturuluyor...")
     for ders in dersler[DERSLER]:
-        print(f"{ders[AD]} README.md oluşturuluyor...")
+        sys.stdout.write(f"{ders[AD]} README.md oluşturuluyor...")
         ders_klasoru = en_iyi_eslesen_klasor_yolu_bul(DOKUMANLAR_REPO_YOLU, ders[AD])
         if ders_klasoru is not None:
             baska_dosya_var_mi = klasorde_baska_dosya_var_mi(ders_klasoru)
@@ -639,9 +639,9 @@ if dersler is not None:
             ders_klasorune_readme_olustur(
                 ders, ders_klasoru, klasor_sonradan_olustu=True
             )
-        print(f"{ders[AD]} README.md oluşturuldu.")
+        sys.stdout.write(f"{ders[AD]} README.md oluşturuldu.")
 else:
-    print("Ders bilgileri bulunamadı.")
+    sys.stderr.write("Ders bilgileri bulunamadı.")
 """
 BURASI DERSLER README OLUŞTURMA KISMI
 """
@@ -655,7 +655,7 @@ Burası Dönem Readme oluşturma kısmı
 def donemlere_gore_readme_olustur(donemler):
     # Her dönem için README.md oluştur
     for donem in donemler[DONEMLER]:
-        print(f"{donem[DONEM_ADI]} README.md oluşturuluyor...")
+        sys.stdout.write(f"{donem[DONEM_ADI]} README.md oluşturuluyor...")
         donem_dosya_yolu = donem_dosya_yolu_getir(donem, DOKUMANLAR_REPO_YOLU)
         os.makedirs(donem_dosya_yolu, exist_ok=True)
         dosya_yolu = os.path.join(donem_dosya_yolu, README_MD)
@@ -670,7 +670,7 @@ def donemlere_gore_readme_olustur(donemler):
             if donem[DONEM_ADI] != "Mesleki Seçmeli Dersler":
                 f.write("## 📚 Dönemin Zorunlu Dersleri\n\n")
                 # Kitap emoji, zorunlu dersleri temsil eder
-        print(f"{donem[DONEM_ADI]} README.md oluşturuldu.")
+        sys.stdout.write(f"{donem[DONEM_ADI]} README.md oluşturuldu.")
 
 
 def ders_bilgilerini_readme_ile_birlestir(
@@ -678,7 +678,7 @@ def ders_bilgilerini_readme_ile_birlestir(
 ):
     # Her ders için ilgili dönem README'sine ekle
     for ders in dersler:
-        print(f"{ders[AD]} README.md dönemine ekleniyor...")
+        sys.stdout.write(f"{ders[AD]} README.md dönemine ekleniyor...")
         for donem in donemler:
             if ders[YIL] == donem[YIL] and ders[DONEM] == donem[DONEM]:
                 dosya_yolu = os.path.join(
@@ -753,17 +753,17 @@ def ders_bilgilerini_readme_ile_birlestir(
                     if GUNCEL_MI in ders and not ders[GUNCEL_MI]:
                         f.write("\n#### ℹ️ Dersin içeriği güncel değil\n")
                         f.write(f"- {guncel_olmayan_ders_aciklamasi}\n")
-        print(f"{ders[AD]} README.md dönemine eklendi.")
+        sys.stdout.write(f"{ders[AD]} README.md dönemine eklendi.")
 
 
 donemler = json_oku(DONEMLER_JSON_NAME)
 if donemler is not None:
-    print("Dönem README'leri oluşturuluyor...")
-    print("Dönem bilgileri README'ye ekleniyor...")
+    sys.stdout.write("Dönem README'leri oluşturuluyor...")
+    sys.stdout.write("Dönem bilgileri README'ye ekleniyor...")
     donemlere_gore_readme_olustur(donemler)
-    print("Ders bilgileri README'ye ekleniyor...")
+    sys.stdout.write("Ders bilgileri README'ye ekleniyor...")
     ders_bilgilerini_readme_ile_birlestir(
         dersler[DERSLER], donemler[DONEMLER], dersler[GUNCEL_OLMAYAN_DERS_ACIKLAMASI]
     )
 else:
-    print("Dönem bilgileri bulunamadı.")
+    sys.stderr.write("Dönem bilgileri bulunamadı.")

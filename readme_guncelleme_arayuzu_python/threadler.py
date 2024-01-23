@@ -188,7 +188,8 @@ class CMDScriptRunnerThread(QThread):
     def __init__(self, cmd):
         super().__init__()
         self.cmd = cmd
-
+        self.calismaya_devam_et = True
+        
     def run(self):
         try:
             # Komutu subprocess.Popen ile çalıştır
@@ -197,6 +198,11 @@ class CMDScriptRunnerThread(QThread):
                 son_bilgi_mesaj = ""
                 # stdout'tan sürekli olarak veri oku
                 while True:
+                    if not self.calismaya_devam_et:
+                        # Süreci durdur
+                        process.terminate()  # ya da process.kill() kullanılabilir
+                        self.error.emit("İşlem kullanıcı tarafından iptal edildi.")
+                        return
                     reads = [process.stdout.fileno(), process.stderr.fileno()]
                     readable, _, _ = select.select(reads, [], [])
 
@@ -226,3 +232,5 @@ class CMDScriptRunnerThread(QThread):
 
         except Exception as e:
             self.error.emit(f"Hata oluştu: {str(e)}")
+    def durdur(self):
+        self.calismaya_devam_et = False

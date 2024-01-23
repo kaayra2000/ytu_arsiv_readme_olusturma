@@ -10,11 +10,11 @@ from PyQt5.QtWidgets import (
     QLineEdit,
 )
 from degiskenler import *
-from progress_dialog import CustomProgressDialog
+from progress_dialog import CustomProgressDialogWithCancel
 from threadler import CMDScriptRunnerThread
 from PyQt5.QtGui import QIcon
 from hoca_ve_ders_adlari_window import HocaDersAdlariWindow
-
+from PyQt5.QtCore import Qt
 
 class GitIslemleriWindow(QDialog):
     def __init__(self):
@@ -83,7 +83,7 @@ class GitIslemleriWindow(QDialog):
             return
         self.original_dir = os.getcwd()
         os.chdir(dizin)
-        self.progress_dialog = CustomProgressDialog(baslik, self)
+        self.progress_dialog = CustomProgressDialogWithCancel(baslik, self, self.thread_durduruluyor)
         # Thread'i başlat
         self.thread = CMDScriptRunnerThread(script_path)
         self.thread.finished.connect(self.progress_dialog.close)
@@ -93,7 +93,18 @@ class GitIslemleriWindow(QDialog):
         self.thread.info.connect(self.info)
         self.thread.start()
         self.progress_dialog.show()
-
+    def thread_durduruluyor(self):
+        cevap = QMessageBox.question(
+                self,
+                "Onay",
+                f"İşlemi durdurmak istediğinize emin misiniz?",
+                QMessageBox.Yes | QMessageBox.No,
+            )
+        if cevap == QMessageBox.No:
+            return
+        self.progress_dialog.setLabelText("İşlem durduruluyor...")
+        self.progress_dialog.iptal_butonu.setEnabled(False)
+        self.thread.durdur()
     def on_finished(self, output):
         QMessageBox.information(self, "Başarılı", output)
         os.chdir(self.original_dir)

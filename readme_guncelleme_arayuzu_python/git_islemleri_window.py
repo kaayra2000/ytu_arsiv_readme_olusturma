@@ -86,8 +86,6 @@ class GitIslemleriWindow(QDialog):
         self.progress_dialog = CustomProgressDialogWithCancel(baslik, self, self.thread_durduruluyor)
         # Thread'i başlat
         self.thread = CMDScriptRunnerThread(script_path,islem)
-        self.thread.finished.connect(self.progress_dialog.close)
-        self.thread.error.connect(self.progress_dialog.close)
         self.thread.finished.connect(self.on_finished)
         self.thread.error.connect(self.on_error)
         self.thread.info.connect(self.info)
@@ -106,14 +104,20 @@ class GitIslemleriWindow(QDialog):
         self.progress_dialog.setCancelButton(None)
         self.thread.durdur()
     def on_finished(self, output):
+        self.progress_dialog.close()
+        del self.thread
+        del self.progress_dialog
         QMessageBox.information(self, "Başarılı", output)
         os.chdir(self.original_dir)
 
     def on_error(self, errors):
+        self.progress_dialog.close()
+        del self.thread
+        del self.progress_dialog
         QMessageBox.critical(self, "Hata", errors)
         os.chdir(self.original_dir)
 
-    def info(self, message, maxlen=20):
+    def info(self, message, maxlen=35):
         # Mesajı belirli bir uzunlukta parçalara ayır, kelimeleri tam böl
         wrapped_message = textwrap.fill(message, maxlen)
 

@@ -17,22 +17,6 @@ class CustomProgressDialog(QProgressDialog):
         self.setWindowModality(Qt.WindowModal)
         self.setMinimumDuration(0)
         self.setAutoClose(True)
-
-        # ProgressBar stilini özelleştir
-        self.setStyleSheet(
-            """
-            QProgressBar {
-                border: 2px solid grey;
-                border-radius: 5px;
-                text-align: center;
-            }
-
-            QProgressBar::chunk {
-                background-color: #05B8CC;
-                width: 20px;
-            }"""
-        )
-
         # Sürekli dönen bir hale getir
         self.setRange(0, 0)
 class CustomProgressDialogWithCancel(CustomProgressDialog):

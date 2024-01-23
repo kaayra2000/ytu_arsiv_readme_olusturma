@@ -1,6 +1,7 @@
 # Üniversite Ders Notları Readme Oluşturucu
 
-Bu reponun amacı temel olarak herhangi bir üniversitenin herhangi bir bölümündeki öğrencilerin oluşturduğu ders notları reposuna readme oluşturma işini kolaylaştırmaktır. 
+Bu reponun amacı temel olarak herhangi bir üniversitenin herhangi bir bölümündeki öğrencilerin oluşturduğu ders notları reposuna readme oluşturma işini kolaylaştırmaktır.
+
 # Örnek olarak [Linkteki](https://github.com/baselkelziye/YTU_Bilgisayar_Muhendisligi_Arsiv) repoyu ziyaret edebilirsiniz.
 
 Bu repodaki tüm _**README.md**_ dosyaları bu arayüzle oluşturulmuştur.
@@ -34,49 +35,49 @@ Bu bölümde, projenin arayüzünün nasıl çalıştırılacağı adım adım a
 
 #### json_depo_bilgileri.txt Dosyasının Hazırlanması:
 
-   Projede, `json_depo_bilgileri.txt` dosyasının kök dizinde olması gerekmektedir. Bu dosya yoksa, arayüz tarafından otomatik olarak oluşturulur. Dosya, JSON dosyalarının hangi klasörde tutulacağını belirtir. Örneğin:
+Projede, `json_depo_bilgileri.txt` dosyasının kök dizinde olması gerekmektedir. Bu dosya yoksa, arayüz tarafından otomatik olarak oluşturulur. Dosya, JSON dosyalarının hangi klasörde tutulacağını belirtir. Örneğin:
 
-   ```
-   ..
-   YTU_Bilgisayar_Muhendisligi_Arsiv
-   json_dosyalari
-   ```
+```
+..
+YTU_Bilgisayar_Muhendisligi_Arsiv
+json_dosyalari
+```
 
-   Bu yapıya göre, JSON dosyaları `YTU_Bilgisayar_Muhendisligi_Arsiv/json_dosyalari` klasöründe oluşur.
+Bu yapıya göre, JSON dosyaları `YTU_Bilgisayar_Muhendisligi_Arsiv/json_dosyalari` klasöründe oluşur.
 
 #### Konfigürasyon Dosyasının Oluşturulması
 
-   `json_depo_bilgileri.txt` dosyasında belirtilen yolda `konfigurasyon.json` dosyası oluşturulmalıdır. Bu dosya yoksa, arayüz tarafından otomatik olarak oluşturulur. Dosyanın içeriği aşağıdaki gibi olmalıdır:
+`json_depo_bilgileri.txt` dosyasında belirtilen yolda `konfigurasyon.json` dosyası oluşturulmalıdır. Bu dosya yoksa, arayüz tarafından otomatik olarak oluşturulur. Dosyanın içeriği aşağıdaki gibi olmalıdır:
 
-   ```json
-   {
-   "github_url": "https://github.com/baselkelziye/YTU_Bilgisayar_Muhendisligi_Arsiv",
-   "hoca_yorumlama": "https://forms.gle/WbwDxHUz6ebJA7t36",
-   "hoca_oylama": "https://forms.gle/s6ZMrQG4q578pEzm7",
-   "ders_yorumlama": "https://forms.gle/SzNmK1w4rVaKE4ee8",
-   "ders_oylama": "https://forms.gle/3njZjmhm215YCAxe6",
-   "ders_oylama_csv": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSDFicOFbJu9Fnc4Hl0mFuuaC0L4PiEmUFkkJrgocwWGWs1wB3TyN1zd4okW8svC6IT2HMIe64NQUUy/pub?output=csv",
-   "ders_yorumlama_csv": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQvGyGLQxobIpaVdQItSpqEoiwJ0DIIHE9kVvCHhfKQ7yYR16c2tI_ix4Z9d2tA4aLt2c4fTLGxlL-s/pub?output=csv",
-   "hoca_oylama_csv": "https://docs.google.com/spreadsheets/d/1w386auUiJaGwoUAmmkEgDtIRSeUplmDz0AZkM09xPTk/export?format=csv",
-   "hoca_yorumlama_csv": "https://docs.google.com/spreadsheets/d/1mexaMdOeB-hWLVP4MI_xmnKwGBuwoRDk6gY9zXDycyI/export?format=csv",
-   "dokumanlar_repo_yolu": "..",
-   "cikmislar": "https://drive.google.com/drive/folders/1LI_Bo7kWqI2krHTw0noUFl9crfZSlrZh"
-   }
-   ```
+```json
+{
+  "github_url": "https://github.com/baselkelziye/YTU_Bilgisayar_Muhendisligi_Arsiv",
+  "hoca_yorumlama": "https://forms.gle/WbwDxHUz6ebJA7t36",
+  "hoca_oylama": "https://forms.gle/s6ZMrQG4q578pEzm7",
+  "ders_yorumlama": "https://forms.gle/SzNmK1w4rVaKE4ee8",
+  "ders_oylama": "https://forms.gle/3njZjmhm215YCAxe6",
+  "ders_oylama_csv": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSDFicOFbJu9Fnc4Hl0mFuuaC0L4PiEmUFkkJrgocwWGWs1wB3TyN1zd4okW8svC6IT2HMIe64NQUUy/pub?output=csv",
+  "ders_yorumlama_csv": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQvGyGLQxobIpaVdQItSpqEoiwJ0DIIHE9kVvCHhfKQ7yYR16c2tI_ix4Z9d2tA4aLt2c4fTLGxlL-s/pub?output=csv",
+  "hoca_oylama_csv": "https://docs.google.com/spreadsheets/d/1w386auUiJaGwoUAmmkEgDtIRSeUplmDz0AZkM09xPTk/export?format=csv",
+  "hoca_yorumlama_csv": "https://docs.google.com/spreadsheets/d/1mexaMdOeB-hWLVP4MI_xmnKwGBuwoRDk6gY9zXDycyI/export?format=csv",
+  "dokumanlar_repo_yolu": "..",
+  "cikmislar": "https://drive.google.com/drive/folders/1LI_Bo7kWqI2krHTw0noUFl9crfZSlrZh"
+}
+```
 
-   - `github_url`: Bu anahtarın karşısına ders dökümanlarının tutulduğu GitHub reposunun adresini ekleyin.
-   - `hoca_yorumlama`: Bu anahtara, hoca yorumlamak için oluşturulan Google Form anketinin linkini ekleyin. Eğer anket henüz oluşturulmadıysa, soru tipleri ve sıralaması [bu örnektekiyle](https://forms.gle/WbwDxHUz6ebJA7t36) birebir aynı olmalıdır.
-   - `hoca_oylama`: Bu anahtara, hoca oylamak için oluşturulan Google Form anketinin linkini ekleyin. Eğer anket henüz oluşturulmadıysa, soru tipleri ve sıralaması [bu örnektekiyle](https://forms.gle/s6ZMrQG4q578pEzm7) birebir aynı olmalıdır.
-   - `ders_yorumlama`: Bu anahtara, ders yorumlamak için oluşturulan Google Form anketinin linkini ekleyin. Eğer anket henüz oluşturulmadıysa, soru tipleri ve sıralaması [bu örnektekiyle](https://forms.gle/SzNmK1w4rVaKE4ee8) birebir aynı olmalıdır.
-   - `ders_oylama`: Bu anahtara, ders oylamak için oluşturulan Google Form anketinin linkini ekleyin. Eğer anket henüz oluşturulmadıysa, soru tipleri ve sıralaması [bu örnektekiyle](https://forms.gle/3njZjmhm215YCAxe6) birebir aynı olmalıdır.
-   - `ders_oylama_csv`: Bu anahtara, ders oylamak için oluşturulan Google Form anketinin içeriğinin kaydedildiği dosyanın CSV formatındaki linkini ekleyin.
-   - `ders_yorumlama_csv`: Bu anahtara, ders yorumlamak için oluşturulan Google Form anketinin içeriğinin kaydedildiği dosyanın CSV formatındaki linkini ekleyin.
-   - `hoca_oylama_csv`: Bu anahtara, hoca oylamak için oluşturulan Google Form anketinin içeriğinin kaydedildiği dosyanın CSV formatındaki linkini ekleyin.
-   - `ders_yorumlama_csv`: Bu anahtara, hoca yorumlamak için oluşturulan Google Form anketinin içeriğinin kaydedildiği dosyanın CSV formatındaki linkini ekleyin.
-   - `dokumanlar_repo_yolu`: Bu anahtara, göreceli olarak ders dökümanlarının tutulduğu GitHub reposunun yolunu verin. Örneğin, `../..` olarak belirlenirse, `README.md` dosyaları iki üst dizini kök dizin olarak kabul eder.
-   - `cikmislar`: İsteğe bağlı olarak boş bırakılabilir. Ders notlarının vb. tutulduğu herhangi bir dış kaynak linki varsa bu alana ekleyebilirsiniz.
+- `github_url`: Bu anahtarın karşısına ders dökümanlarının tutulduğu GitHub reposunun adresini ekleyin.
+- `hoca_yorumlama`: Bu anahtara, hoca yorumlamak için oluşturulan Google Form anketinin linkini ekleyin. Eğer anket henüz oluşturulmadıysa, soru tipleri ve sıralaması [bu örnektekiyle](https://forms.gle/WbwDxHUz6ebJA7t36) birebir aynı olmalıdır.
+- `hoca_oylama`: Bu anahtara, hoca oylamak için oluşturulan Google Form anketinin linkini ekleyin. Eğer anket henüz oluşturulmadıysa, soru tipleri ve sıralaması [bu örnektekiyle](https://forms.gle/s6ZMrQG4q578pEzm7) birebir aynı olmalıdır.
+- `ders_yorumlama`: Bu anahtara, ders yorumlamak için oluşturulan Google Form anketinin linkini ekleyin. Eğer anket henüz oluşturulmadıysa, soru tipleri ve sıralaması [bu örnektekiyle](https://forms.gle/SzNmK1w4rVaKE4ee8) birebir aynı olmalıdır.
+- `ders_oylama`: Bu anahtara, ders oylamak için oluşturulan Google Form anketinin linkini ekleyin. Eğer anket henüz oluşturulmadıysa, soru tipleri ve sıralaması [bu örnektekiyle](https://forms.gle/3njZjmhm215YCAxe6) birebir aynı olmalıdır.
+- `ders_oylama_csv`: Bu anahtara, ders oylamak için oluşturulan Google Form anketinin içeriğinin kaydedildiği dosyanın CSV formatındaki linkini ekleyin.
+- `ders_yorumlama_csv`: Bu anahtara, ders yorumlamak için oluşturulan Google Form anketinin içeriğinin kaydedildiği dosyanın CSV formatındaki linkini ekleyin.
+- `hoca_oylama_csv`: Bu anahtara, hoca oylamak için oluşturulan Google Form anketinin içeriğinin kaydedildiği dosyanın CSV formatındaki linkini ekleyin.
+- `ders_yorumlama_csv`: Bu anahtara, hoca yorumlamak için oluşturulan Google Form anketinin içeriğinin kaydedildiği dosyanın CSV formatındaki linkini ekleyin.
+- `dokumanlar_repo_yolu`: Bu anahtara, göreceli olarak ders dökümanlarının tutulduğu GitHub reposunun yolunu verin. Örneğin, `../..` olarak belirlenirse, `README.md` dosyaları iki üst dizini kök dizin olarak kabul eder.
+- `cikmislar`: İsteğe bağlı olarak boş bırakılabilir. Ders notlarının vb. tutulduğu herhangi bir dış kaynak linki varsa bu alana ekleyebilirsiniz.
 
-   **Not:** Google Sheets'ten CSV dosyasını nasıl linke dönüştüreceğinizi bilmiyorsanız, [bu adresteki](https://blog.golayer.io/google-sheets/export-google-sheets-to-csv) `Export Google Sheets to CSV Automatically` başlığına göz atabilirsiniz.
+**Not:** Google Sheets'ten CSV dosyasını nasıl linke dönüştüreceğinizi bilmiyorsanız, [bu adresteki](https://blog.golayer.io/google-sheets/export-google-sheets-to-csv) `Export Google Sheets to CSV Automatically` başlığına göz atabilirsiniz.
 
 #### Arayüzün Çalıştırılması
 
@@ -184,7 +185,7 @@ Yukarıdaki dosyalar hazırlandıktan sonra, Windows'ta arayüzü çalıştırma
        - Bu arayzle alakalı herhangi bir değişiklik varsa _Arayüz Kodlarını Güncelleme_ işlemi
        - Ders dosyalarında herhangi bir değişiklik varsa _Dosya Değişikliklerini Github'dan Çekme_ işlemi
        - Anketlerdeki değişiklikleri otomatik ve periyodik olarak githubla senkronize etmek için _Rutin Kontrolü Başlatma_ işlemi
-       - Ders dosyalarıyla alakalı yaptığımız tüm _Değişiklikleri Github'a Pushlama_ işlemi [Git İşlemleri Ekranından]() yapılabilir.
+       - Ders dosyalarıyla alakalı yaptığımız tüm _Değişiklikleri Github'a Pushlama_ işlemi [Git İşlemleri Ekranından](#git_islemleri_ekrani) yapılabilir.
 
 #### Giriş Güncelle Ekranı
 
@@ -386,8 +387,25 @@ Yukarıdaki dosyalar hazırlandıktan sonra, Windows'ta arayüzü çalıştırma
    - Bu buton eğer bilgisayardaki dosyalarda herhangi bir değişiklik yoksa githubdaki ders notları vb.'de olan değişiklikleri yerele çeker.
 1. _Rutin Kontrol Başlat Butonu_
    - Bu buton sürekli bir kontrol başlatır. Anketlere herhangi bir cevap gelip gelmediğini sürekli kontrol eder. Eğer anketlerden herhangi birine cevap gelmişse değişiklikleri işler. İlk olarak _Google Form Güncelle Butonu_'nun işlevini gerçekleştirir. Daha sonra _Readme Güncelle Butonu_'nun işlevlerini gerçekleştirir. Sonra da değişiklikleri github'a pushlar.
+1. _Hoca/Ders Adlarını Al Butonu_
+   - Bu buton _Google Form_'da ankete hoca ve ders adlarını daha kolay ekleyebilmek için [Hoca ve Dersler Listesi](#git_islemleri_ekrani_hocalar_ve_dersler_listesi) ekranını açar.
 1. _Değişiklikleri Github'a Pushla_
    - Bu buton yereldeki ders reposundaki tüm değişiklikleri githuba göndermeye yarayan [Değişiklikleri Pushlama](#git_islemleri_ekrani_degisiklikleri_githuba_pushla) ekranını açar.
+
+#### Hoca ve Dersler Listesi
+
+<a id="git_islemleri_ekrani_hocalar_ve_dersler_listesi"></a>
+
+<p align="center">
+    <img src="readme_fotolari/git_islemleri_ekrani_hocalar_ve_dersler_listesi.png" alt="Hoca ve Dersler Listesi Ekranı">
+    <br>
+    <strong>Hoca ve Dersler Listesi Ekranı</strong>
+</p>
+
+1. _Hocaları Kopyala Butonu_
+   - Hoca isimlerini _Google Form_'lara eklemek üzere kopyalar.
+1. _Dersleri Kopyala Butonu_
+   - Ders isimlerini _Google Form_'lara eklemek üzere kopyalar.
 
 #### Dersler Açıklama Düzenleme
 
@@ -534,6 +552,7 @@ Yukarıdaki dosyalar hazırlandıktan sonra, Windows'ta arayüzü çalıştırma
    - Tavsiyeler arasına bir yenisini ekler. Silmek için yanındaki **_Sil_** butonuna tıklayabilirsin.
 1. _Kaydet Butonu_
    - Kaydetmeye yarayan buton.
+
 #### Giriş Açıklama Düzenleme
 
 <a id="giris_ekrani_aciklama_duzenle"></a>
@@ -597,6 +616,7 @@ Yukarıdaki dosyalar hazırlandıktan sonra, Windows'ta arayüzü çalıştırma
    - İlgili içeriğin _Giriş_ kısmına eklenmesi için butona bas.
 
 #### Değişiklikleri Pushlama
+
 <a id="git_islemleri_ekrani_degisiklikleri_githuba_pushla"></a>
 
 <p align="center">
@@ -606,11 +626,12 @@ Yukarıdaki dosyalar hazırlandıktan sonra, Windows'ta arayüzü çalıştırma
 </p>
 
 1. _Commit Mesajı_
-   - _Commit Mesajı_ GitHub'da yapılan değişikliğin etiketidir. Dosyalarda kaydedilen son değişiklikten sonra ne tür değişiklikler yaptığınızı yazabilirsiniz. Sonrasında **_OK_** tuşuna basarak değişikliği GitHub'da görebilirsiniz. 
+   - _Commit Mesajı_ GitHub'da yapılan değişikliğin etiketidir. Dosyalarda kaydedilen son değişiklikten sonra ne tür değişiklikler yaptığınızı yazabilirsiniz. Sonrasında **_OK_** tuşuna basarak değişikliği GitHub'da görebilirsiniz.
    - Bu işlemi yaparken GitHub'da değişiklik yapılmamış olması gerekmektedir. Eğer sizin değişikliklerinizden önce birisi herhangi bir değişiklik yapmış ve GitHub'a göndermişse ve siz de bu değişikliği yerel bilgisayarınıza çekmeden değişiklik yapmışsanız, bu işlemi gerçekleştiremezsiniz.
    - Eğer böyle bir işlem yapmışsanız ve bu sayfaya geçmeye çalışırken uyarı alıyorsanız _ChatGPT_'ye **Rebase İşlemini Nasıl Yaparım?** ya da **Stash İşlemini Nasıl Yaparım** sorusunu sorabilirsiniz.
 
 #### Hocalar Açıklama Düzenleme
+
 <a id="hoca_ekrani_aciklama_duzenle"></a>
 
 <p align="center">
@@ -623,6 +644,7 @@ Yukarıdaki dosyalar hazırlandıktan sonra, Windows'ta arayüzü çalıştırma
    - _Hocalar_ kısmında gözükmesi istenen açıklama içeriği buraya yazılır. **_Ok_** butonuna basarak değişiklikler kaydedilir.
 
 #### Hocalar Bölüm Adı Düzenleme
+
 <a id="hoca_ekrani_bolum_adi_duzenle"></a>
 
 <p align="center">
@@ -635,6 +657,7 @@ Yukarıdaki dosyalar hazırlandıktan sonra, Windows'ta arayüzü çalıştırma
    - _Hocalar_ kısmında gözükmesi istenen bölüm adı içeriği buraya yazılır. **_OK_** butonuna basarak değişiklikler kaydedilir.
 
 #### Hoca Düzenleme
+
 <a id="hoca_ekrani_duzenle"></a>
 
 <p align="center">
@@ -661,6 +684,7 @@ Yukarıdaki dosyalar hazırlandıktan sonra, Windows'ta arayüzü çalıştırma
    - Eğer ilgili hoca bilgileri silinmek isteniyorsa bu butona basılır.
 
 #### Hoca Ekleme
+
 <a id="hoca_ekrani_ekle"></a>
 
 <p align="center">
@@ -683,7 +707,9 @@ Yukarıdaki dosyalar hazırlandıktan sonra, Windows'ta arayüzü çalıştırma
    - Hocanın verdiği dersi eklemek için butona tıklanır ve üstteki _Hocanın Verdiği Dersler_ kısmına bir ders eklenir. Burada ders seçme işlemi yapılabilir.
 7. _Ekle_
    - Seçilen hoca bilgileri eğer kaydedilmek isteniyorsa bu butona basılır. Bu işlem yapıldıktan sonra artık ilgili hoca bilgileri _Hocalar_ arasına eklenmiş olur.
+
 #### Repo Kullanımı Başlık Düzenleme
+
 <a id="repo_kullanimi_baslik_duzenle"></a>
 
 <p align="center">
@@ -695,8 +721,8 @@ Yukarıdaki dosyalar hazırlandıktan sonra, Windows'ta arayüzü çalıştırma
 1. _Başlık_
    - _Repo Kullanımı_ kısmında gözükmesi istenen başlık içeriği buraya yazılır. **_OK_** butonuna basarak değişiklikler kaydedilir.
 
-
 #### Repo Kullanımı Açıklama Ekle/Düzenle
+
 <a id="repo_kullanimi_ekrani_aciklama_ekle_ekrani"></a>
 
 <p align="center">
@@ -706,12 +732,14 @@ Yukarıdaki dosyalar hazırlandıktan sonra, Windows'ta arayüzü çalıştırma
 </p>
 
 1. _Açıklamalar İçinde Yer Alan Herhangi Bir Buton_
+
    - Bu buton _Repo Kullanımı_ bölümündeki ilgili açıklamayı düzenlemeye yarayan [Repo Kullanımı Açıklamalarında Açıklama Ekle/Düzenle](#repo_kullanimi_ekrani_aciklama_ekle_ekrani_aciklama_ekle) ekranını açar.
 
 1. _Açıklama Ekle Butonu_
    - Bu buton _Repo Kullanımı_ bölümündeki açıklamalar arasına bir yenisini eklemeye yarayan [Repo Kullanımı Açıklamalarında Açıklama Ekle/Düzenle](#repo_kullanimi_ekrani_aciklama_ekle_ekrani_aciklama_ekle) ekranını açar.
 
 #### Repo Kullanımı Açıklamalarında Açıklama Ekle/Düzenle
+
 <a id="repo_kullanimi_ekrani_aciklama_ekle_ekrani_aciklama_ekle"></a>
 
 <p align="center">
@@ -724,6 +752,7 @@ Yukarıdaki dosyalar hazırlandıktan sonra, Windows'ta arayüzü çalıştırma
    - _Repo Kullanımı_ kısmında gözükmesi istenen açıklamanın içeriği yazılır. **_Ok_** butonuna basarak değişiklikler kaydedilir. (Güncellenir ya da Eklenir)
 
 #### Kavram Ekle/Düzenle
+
 <a id="repo_kullanimi_ekrani_kavram_ekle_ekrani"></a>
 
 <p align="center">
@@ -737,12 +766,14 @@ Yukarıdaki dosyalar hazırlandıktan sonra, Windows'ta arayüzü çalıştırma
 1. _Adı Düzenle Butonu_
    - İlgili kavramın adını düzenlemek için[Kavram Ekleme/Ad Düzenleme](#repo_kullanimi_ekrani_kavram_ekle_ekrani_kavram_ekle) ekranını açar.
 1. _Sil Butonu_
+
    - İlgili kavramı siler.
 
 1. _Kavram Ekle Butonu_
    - Bu buton _Repo Kullanımı_ bölümündeki kavramlar arasına bir yenisini eklemeye yarayan [Kavram Ekleme/Ad Düzenleme](#repo_kullanimi_ekrani_kavram_ekle_ekrani_kavram_ekle) ekranını açar.
 
 #### Kavram Açıklamaları Ekleme/Düzenleme
+
 <a id="repo_kullanimi_ekrani_kavram_ekle_ekrani_kavram_aciklama_duzenle_ekrani"></a>
 
 <p align="center">
@@ -752,11 +783,12 @@ Yukarıdaki dosyalar hazırlandıktan sonra, Windows'ta arayüzü çalıştırma
 </p>
 
 1. _Açıklama Ekle Butonu_
-   - Kavramla ilgili açıklama eklemeye yarayan [Kavram Açıklaması Ekleme/Düzenleme](#repo_kullanimi_ekrani_kavram_ekle_ekrani_kavram_aciklama_duzenle_ekrani_aciklama_ekle) ekranını açar. 
+   - Kavramla ilgili açıklama eklemeye yarayan [Kavram Açıklaması Ekleme/Düzenleme](#repo_kullanimi_ekrani_kavram_ekle_ekrani_kavram_aciklama_duzenle_ekrani_aciklama_ekle) ekranını açar.
 1. _Açıklamalar İçinde Yer Alan Herhangi Bir Buton_
    - Bu buton _Repo Kullanımı_ bölümündeki ilgili kavramın ilgilş açıklamasını düzenlemeye yarayan [Kavram Açıklaması Ekleme/Düzenleme](#repo_kullanimi_ekrani_kavram_ekle_ekrani_kavram_aciklama_duzenle_ekrani) ekranını açar.
 
 #### Kavram Açıklaması Ekleme/Düzenleme
+
 <a id="repo_kullanimi_ekrani_kavram_ekle_ekrani_kavram_aciklama_duzenle_ekrani_aciklama_ekle"></a>
 
 <p align="center">
@@ -769,6 +801,7 @@ Yukarıdaki dosyalar hazırlandıktan sonra, Windows'ta arayüzü çalıştırma
    - İlgili kavramın altında gözükmesi istenen istenen açıklamanın içeriği yazılır. **_Ok_** butonuna basarak değişiklikler kaydedilir. (Güncellenir ya da Eklenir)
 
 #### Kavram Ekleme/Ad Düzenleme
+
 <a id="repo_kullanimi_ekrani_kavram_ekle_ekrani_kavram_ekle"></a>
 
 <p align="center">
@@ -781,6 +814,7 @@ Yukarıdaki dosyalar hazırlandıktan sonra, Windows'ta arayüzü çalıştırma
    - _Repo Kullanımı_ kısmına eklenmesi istenen kavramın adı yazılır. **_Ok_** butonuna basarak değişiklikler kaydedilir. (Güncellenir ya da Eklenir)
 
 #### Talimat Ekle/Düzenle
+
 <a id="repo_kullanimi_ekrani_talimat_ekrani"></a>
 
 <p align="center">
@@ -790,12 +824,14 @@ Yukarıdaki dosyalar hazırlandıktan sonra, Windows'ta arayüzü çalıştırma
 </p>
 
 1. _Talimatlar İçinde Yer Alan Herhangi Bir Buton_
+
    - Bu buton _Repo Kullanımı_ bölümündeki ilgili talimatı düzenlemeye yarayan [Repo Kullanımı Talimatlarında Talimat Ekle/Düzenle](#repo_kullanimi_ekrani_talimat_ekrani_talimat_ekle) ekranını açar.
 
 1. _Talimat Ekle Butonu_
    - Bu buton _Repo Kullanımı_ bölümündeki talimatlar arasına bir yenisini eklemeye yarayan [Repo Kullanımı Talimatlarında Talimat Ekle/Düzenle](#repo_kullanimi_ekrani_talimat_ekrani_talimat_ekle) ekranını açar.
 
 #### Repo Kullanımı Talimatlarında Talimat Ekle/Düzenle
+
 <a id="repo_kullanimi_ekrani_talimat_ekrani_talimat_ekle"></a>
 
 <p align="center">
@@ -875,7 +911,7 @@ Yukarıdaki dosyalar hazırlandıktan sonra, Windows'ta arayüzü çalıştırma
 
 1. _Notu Düzenle_
    - _Yazarın Notları_ kısmında güncellenmek istenen not içeriği buraya yazılır.
-1. _Değişiklikleri Kaydet Butonu_ 
+1. _Değişiklikleri Kaydet Butonu_
    - Eğer değişiklikler geçerli olsun istiyorsanız bu butona basın.
 1. _Sil Butonu_
    - İlgili notu silmek için bu butona basın.
@@ -892,5 +928,5 @@ Yukarıdaki dosyalar hazırlandıktan sonra, Windows'ta arayüzü çalıştırma
 
 1. _Not Ekle_
    - _Yazarın Notları_ kısmına eklenmek istenen not içeriği buraya yazılır.
-1. _Ekle Butonu_ 
+1. _Ekle Butonu_
    - Eğer notu _Yazarın Notları_ arasına eklemek istiyorsanız bu butona basın.

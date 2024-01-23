@@ -13,7 +13,7 @@ from degiskenler import *
 from progress_dialog import CustomProgressDialog
 from threadler import CMDScriptRunnerThread
 from PyQt5.QtGui import QIcon
-import json
+from hoca_ve_ders_adlari_window import HocaDersAdlariWindow
 
 
 class GitIslemleriWindow(QDialog):
@@ -34,6 +34,7 @@ class GitIslemleriWindow(QDialog):
             QPushButton("Arayüz Kodlarını Güncelle"),
             QPushButton("Dosya Değişikliklerini Github'dan Çek"),
             QPushButton("Rutin Kontrolü Başlat"),
+            QPushButton("Hoca/Ders Adlarını Al (Google Form'a Kopyalamak İçin)"),
             QPushButton("Değişiklikleri Github'a Pushla"),
         ]
 
@@ -43,6 +44,7 @@ class GitIslemleriWindow(QDialog):
             "background-color: #1ABC9C; color: white;",  # Açık Mavi/Turkuaz
             "background-color: #F1C40F; color: black;",  # Sarı
             "background-color: #FF69B4; color: white;",  # Pembe
+            "background-color: #8E44AD; color: white;",  # Mor
             "background-color: #3498DB; color: white;",  # Mavi
         ]
 
@@ -53,6 +55,7 @@ class GitIslemleriWindow(QDialog):
             self.update_interface,
             self.update_dosyalar_repo,
             self.start_routine_check,
+            self.hoca_ders_adlari_ac,
             self.push_changes,
         ]
         # Butonları dialog'a ekleme, renklendirme ve bağlama
@@ -65,7 +68,9 @@ class GitIslemleriWindow(QDialog):
 
         # İşletim sistemi kontrolü
         self.is_windows = sys.platform.startswith("win")
-
+    def hoca_ders_adlari_ac(self):
+        hoca_ders_adlari_window = HocaDersAdlariWindow(self)
+        hoca_ders_adlari_window.exec_()    
     def run_script(self, script_path, baslik, islem=""):
         cevap = QMessageBox.question(
             self,

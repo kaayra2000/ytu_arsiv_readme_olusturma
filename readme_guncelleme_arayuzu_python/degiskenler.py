@@ -207,6 +207,9 @@ except:
     )
 
 
+GENEL_CIKMIS_SORULAR_METNI = f"- 📄 [Genel Çıkmış Sorular]({CIKMISLAR_LINKI})\n"
+
+
 ANA_README_YOLU = os.path.join(DOKUMANLAR_REPO_YOLU, README_MD)
 # UNVAN KISALTMALARI
 PROF_DR = "Prof. Dr."

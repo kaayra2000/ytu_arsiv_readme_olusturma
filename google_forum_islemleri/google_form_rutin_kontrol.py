@@ -34,19 +34,31 @@ def check_for_updates(key, url):
 def execute_command(command):
     custom_write(f"Komut çalıştırılıyor: {command}\n")
     try:
-        # Komutu çalıştır ve çıktıyı yakala
-        result = subprocess.run(
+        # Komutu çalıştır
+        with subprocess.Popen(
             command,
             shell=True,
-            check=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-        )
-        # Komut başarıyla çalıştıysa, çıktıyı yazdır
-        custom_write(result.stdout.decode() + "\n")
+            text=True,
+            bufsize=1,
+            universal_newlines=True,
+        ) as process:
+            # Standart çıktıyı oku
+            for line in process.stdout:
+                custom_write(line + "\n")
+            # Hata çıktısını oku
+            error_output = process.stderr.read()
+            if error_output:
+                custom_write_error(error_output + "\n")
+                return False
+            # İşlem sonucunu kontrol et
+            process.wait()
+            if process.returncode != 0:
+                raise subprocess.CalledProcessError(process.returncode, command)
     except subprocess.CalledProcessError as e:
-        # Komut hata ile sonuçlanırsa, hatayı yazdır ve script'i durdur
-        custom_write_error(f"Komut hatası: {e.stderr.decode()}\n")
+        # Komut hata ile sonuçlanırsa, hatayı yazdır
+        custom_write_error(f"Komut hatası: {e}\n")
         return False
     return True
 
@@ -68,9 +80,10 @@ def update_repository():
         output = stream.read()
         if "nothing to commit, working tree clean" not in output:
             custom_write_error(
-                "Dizinde değişiklikler var. Lütfen önce bu değişiklikleri commit yapın veya geri alın. Script durduruluyor."
+                "Dizinde değişiklikler var. Lütfen önce bu değişiklikleri commit yapın veya geri alın. Script durduruluyor.\n"
             )
             exit(1)
+
         if not execute_command("git fetch"):
             custom_write_error(
                 "Fetch sırasında conflict oluştu, script durduruluyor.\n"
@@ -110,7 +123,7 @@ def update_repository():
             return
     except Exception as e:
         # Hata oluşursa, hatayı yazdır ve e-posta gönder
-        error_message = f"Script hatası: {e}"
+        error_message = f"Script hatası: {e}\n"
         custom_write_error(error_message)
     finally:
         # Başlangıç dizinine geri dön, hata olsa bile

@@ -212,7 +212,8 @@ ANA_README_YOLU = os.path.join(DOKUMANLAR_REPO_YOLU, README_MD)
 PROF_DR = "Prof. Dr."
 DOC_DR = "Doç. Dr."
 DR = "Dr."
-unvanlar = [PROF_DR, DOC_DR, DR]
+ARS_GRV = "Arş. Grv."
+unvanlar = [PROF_DR, DOC_DR, DR, ARS_GRV]
 
 # STİLLER
 

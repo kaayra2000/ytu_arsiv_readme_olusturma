@@ -47,6 +47,7 @@ class KatkidaBulunanEkleWindow(QDialog):
         self.katkida_bulunma_orani_label.setAlignment(Qt.AlignCenter)
         self.katkida_bulunma_orani = QComboBox()
         self.katkida_bulunma_orani.addItems(KATKIDA_BULUNMA_ORANI_DIZI)
+        self.katkida_bulunma_orani.setCurrentText(KATKIDA_BULUNMA_ORANI_DIZI[-1])
         self.ekle_btn = QPushButton("Ekle", self)
         self.ekle_btn.setStyleSheet(EKLE_BUTONU_STILI)
         # Butona basıldığında ekleme işlevini çalıştır

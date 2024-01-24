@@ -181,8 +181,7 @@ class IcindekilerDuzenleWindow(QDialog):
         self.data = data
         self.key = key
         self.json_path = json_path
-        desen = r"\[(.*?)\]\((.*?)\)"
-        eslesme = re.search(desen, metin)
+        eslesme = re.search(capa_deseni, metin)
         self.capa = None
         self.baslik = None
         # eşleşme var mı kontrolü

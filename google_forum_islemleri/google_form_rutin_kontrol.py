@@ -66,10 +66,10 @@ def update_repository(deneme_sayisi=0):
     # Mevcut çalışma dizinini sakla
     original_directory = os.getcwd()
     custom_write("Güncellemeler uygulanıyor...\n")
-    readme_guncelle_komutu = f"python3 readme_olustur.py"
+    readme_guncelle_komutu = f"python3 {README_OLUSTUR_PY}"
     # google form güncelle komutu
     google_form_guncelle_komutu = (
-        f"python3 hoca_icerikleri_guncelle.py && python3 ders_icerikleri_guncelle.py"
+        f"python3 {HOCA_ICERIKLERI_GUNCELLE_PY} && python3 {DERS_ICERIKLERI_GUNCELLE_PY}"
     )
     # Git ve Python komutlarını sırayla çalıştır
     try:

@@ -17,8 +17,8 @@ from hoca_ve_ders_adlari_window import HocaDersAdlariWindow
 from PyQt5.QtCore import Qt
 
 class GitIslemleriWindow(QDialog):
-    def __init__(self):
-        super(GitIslemleriWindow, self).__init__()
+    def __init__(self,parent=None):
+        super(GitIslemleriWindow, self).__init__(parent)
         self.setModal(True)
         self.setWindowTitle("Git İşlemleri")
         self.setMinimumSize(300, 200)

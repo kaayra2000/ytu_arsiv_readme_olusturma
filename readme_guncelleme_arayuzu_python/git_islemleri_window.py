@@ -192,6 +192,11 @@ class GitIslemleriWindow(QDialog):
             baslik="Arayüz Kodları Güncelleniyor...",
             islem="Arayüz Kodları Güncelleme",
         )
+        QMessageBox.information(
+            self,
+            "Bilgi",
+            "Arayüz kodları güncellendi. Lütfen programı yeniden başlatın.")
+        sys.exit()
 
     def start_routine_check(self):
         komut = "python3 google_form_rutin_kontrol.py"

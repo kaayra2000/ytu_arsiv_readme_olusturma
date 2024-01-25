@@ -146,6 +146,7 @@ for key, url in urls.items():
     previous_hashes[url] = hashlib.md5(data).hexdigest()
 update_repository()
 i = 0
+guncelleme_sayisi = 0
 timeout = 180
 div = 3
 custom_write("Script çalışıyor...\n")
@@ -154,13 +155,13 @@ while True:
     for key, url in urls.items():
         if check_for_updates(key, url):
             custom_write(f"Güncelleme tespit edildi: {key}\n")
-            update_repository(i)
+            guncelleme_sayisi += 1
+            update_repository(guncelleme_sayisi)
         else:
             custom_write(f"Güncelleme yok: {key}\n")
     i += 1
-    custom_write(f"{i}. kontrol tamamlandı.\n")
     for k in range(0, int(timeout / div)):
         custom_write(
-            f"{timeout-k*div} saniye sonra kontrol edilecek.\n"
+            f"{timeout-k*div} saniye sonra kontrol edilecek. Kontol sayısı {i}\n"
         )  # '\r' ile satırın başına dön
         time.sleep(div)

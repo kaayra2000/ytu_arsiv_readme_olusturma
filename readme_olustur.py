@@ -61,6 +61,10 @@ def en_iyi_eslesen_klasor_yolu_bul(baslangic_yolu, aranan_ad):
         for klasor_ad in alt_dizinler:
             # Eşleşme skoru hesaplama
             skor = benzerlik_skoru(aranan_ad, klasor_ad)
+            # Örneğin Matematik 1 için Matematik 2 döndürmesin diye ek kontrol
+            # ilk kontrol Matematik 1 için Matematik 2'yi, ikinci kontrol Matematik 2 için Matematik 1'i döndürmesin diye
+            if ('1' in aranan_ad and '2' in klasor_ad) or ('2' in aranan_ad and '1' in klasor_ad):
+                skor = 0
             # Her iki yüzde de %50'den büyükse, eşleşme olarak kabul et
             if (
                 skor > en_yuksek_yuzde
@@ -68,7 +72,6 @@ def en_iyi_eslesen_klasor_yolu_bul(baslangic_yolu, aranan_ad):
             ):
                 en_yuksek_yuzde = skor
                 en_iyi_eslesme = os.path.join(dizin_yolu, klasor_ad)
-
     return (
         None
         if (

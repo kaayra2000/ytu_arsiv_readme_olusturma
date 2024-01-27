@@ -246,11 +246,6 @@ def hocalari_readme_ye_ekle(bilgiler):
                 f.write(
                     f"  - 🎉 Derste Eğlenir Miyim:\t{puanlari_yildiza_cevir(hoca[EGLENCE_PUANI])}\n"
                 )
-            else:
-                f.write("  - 🎭 Dersi Zevkli Anlatır Mı:\tbilinmiyor\n")
-                f.write("  - 🛣️ Dersi Kolay Geçer Miyim:\tbilinmiyor\n")
-                f.write("  - 🧠 Dersi Öğrenir Miyim:\tbilinmiyor\n")
-                f.write("  - 🎉 Derste Eğlenir Miyim:\tbilinmiyor\n")
             if (
                 OY_SAYISI in hoca
                 and isinstance(hoca[OY_SAYISI], int)

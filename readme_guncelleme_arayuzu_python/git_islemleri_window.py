@@ -188,8 +188,17 @@ class GitIslemleriWindow(QDialog):
 
     def update_interface(self):
         if not self.git_degisiklik_kontrol():
-            return
-        komut = "git pull"
+            cevap = QMessageBox.question(
+                self,
+                "Onay",
+                f"Yerelde değişiklikleriniz var ve işleme devam ederseniz değişiklikleriniz silinecek. Devam etmek istediğinize emin misiniz?",
+                QMessageBox.Yes | QMessageBox.No,
+            )
+            if cevap == QMessageBox.No:
+                QMessageBox.information(self, "İptal", "İşlem iptal edildi.")
+                return
+        # hard reset komutu
+        komut = "git fetch --all && git reset --hard origin/main"
         self.run_script(
             komut,
             baslik="Arayüz Kodları Güncelleniyor...",

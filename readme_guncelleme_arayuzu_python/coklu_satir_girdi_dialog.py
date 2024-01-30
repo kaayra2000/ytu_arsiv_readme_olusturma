@@ -8,6 +8,7 @@ class SatirAtlayanInputDialog(QDialog):
         self.textEdit = QTextEdit(self)
         self.textEdit.setWordWrapMode(True)  # Otomatik satır kaydırma
         self.textEdit.setText(text)
+        self.textEdit.setAcceptRichText(False)  # Zengin metin kabul etme
 
         self.layout = QVBoxLayout(self)
         self.layout.addWidget(self.textEdit)

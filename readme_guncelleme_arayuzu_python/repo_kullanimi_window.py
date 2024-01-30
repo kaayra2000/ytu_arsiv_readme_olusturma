@@ -67,7 +67,7 @@ class TalimatDialog(QDialog):
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_F and event.modifiers() & Qt.ControlModifier:
             text, ok = QInputDialog.getText(self, "Arama", "Aranacak talimat:")
-            if ok:
+            if ok and yeni_talimat == "":
                 self.searchTalimat(text)
 
     def searchTalimat(self, query):
@@ -194,9 +194,9 @@ class TalimatDialog(QDialog):
                 self.jsonGuncelle()
                 info_baslik = "Başarılı"
                 info_mesaj = "Talimat düzenlendi."
-        if ok:
+        if ok and yeni_talimat == "":
             info_baslik = "Uyarı"
-            info_mesaj = "Açıklama boş bırakılamaz."
+            info_mesaj = "Talimat boş bırakılamaz."
         QMessageBox.information(self, info_baslik, info_mesaj)
 
     def talimatSil(self, index):
@@ -228,7 +228,7 @@ class TalimatDialog(QDialog):
                 self.jsonGuncelle()
                 info_baslik = "Başarılı"
                 info_mesaj = "Talimat eklendi."
-        if ok:
+        if ok and yeni_talimat == "":
             info_baslik = "Uyarı"
             info_mesaj = "Açıklama boş bırakılamaz."
         QMessageBox.information(self, info_baslik, info_mesaj)
@@ -326,7 +326,7 @@ class KavramDetayDialog(QDialog):
         yeni_aciklama, ok = SatirAtlayanInputDialog.getMultiLineText(
             self, "Açıklama Düzenle", "Açıklama:", text=eski_aciklama
         )
-        inf0_baslik = "İptal"
+        info_baslik = "İptal"
         info_mesaj = "Açıklama düzenleme işlemi iptal edildi."
         if ok and yeni_aciklama:
             # Kullanıcıya onay sorusu sor
@@ -345,7 +345,7 @@ class KavramDetayDialog(QDialog):
                 self.aciklamaListele()
                 info_baslik = "Başarılı"
                 info_mesaj = "Açıklama düzenlendi."
-        if ok:
+        if ok and yeni_talimat == "":
             info_baslik = "Uyarı"
             info_mesaj = "Açıklama boş bırakılamaz."
         QMessageBox.information(self, info_baslik, info_mesaj)
@@ -383,7 +383,7 @@ class KavramDetayDialog(QDialog):
                 self.aciklamaListele()
                 info_baslik = "Başarılı"
                 info_mesaj = "Açıklama eklendi." 
-        if ok:
+        if ok and yeni_talimat == "":
             info_baslik = "Uyarı"
             info_mesaj = "Açıklama boş bırakılamaz."     
         QMessageBox.information(self, info_baslik, info_mesaj)
@@ -441,7 +441,7 @@ class KavramDialog(QDialog):
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_F and event.modifiers() & Qt.ControlModifier:
             text, ok = QInputDialog.getText(self, "Arama", "Aranacak kavram:")
-            if ok:
+            if ok and yeni_talimat == "":
                 self.searchKavram(text)
 
     def searchKavram(self, query):
@@ -660,7 +660,7 @@ class AciklamaDialog(QDialog):
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_F and event.modifiers() & Qt.ControlModifier:
             text, ok = QInputDialog.getText(self, "Arama", "Aranacak açıklama:")
-            if ok:
+            if ok and yeni_talimat == "":
                 self.searchAciklama(text)
 
     def searchAciklama(self, query):
@@ -775,7 +775,7 @@ class AciklamaDialog(QDialog):
                 self.jsonGuncelle()
                 info_baslik = "Başarılı"
                 info_mesaj = "Açıklama düzenlendi."
-        if ok:
+        if ok and yeni_talimat == "":
             info_baslik = "Uyarı"
             info_mesaj = "Açıklama boş bırakılamaz."
         QMessageBox.information(self, info_baslik, info_mesaj)
@@ -811,7 +811,7 @@ class AciklamaDialog(QDialog):
                 self.jsonGuncelle()
                 info_baslik = "Başarılı"
                 info_mesaj = "Açıklama eklendi."
-        if ok:
+        if ok and yeni_talimat == "":
             info_baslik = "Uyarı"
             info_mesaj = "Açıklama boş bırakılamaz."
         QMessageBox.information(self, info_baslik, info_mesaj)
@@ -891,7 +891,7 @@ class RepoKullanimiDialog(QDialog):
                 self.baslikBtn.setToolTip(self.repo_data[BASLIK])
                 info_baslik = "Başarılı"
                 info_mesaj = "Başlık düzenlendi."
-        if ok:
+        if ok and yeni_talimat == "":
             info_baslik = "Uyarı"
             info_mesaj = "Açıklama boş bırakılamaz."
         QMessageBox.information(self, info_baslik, info_mesaj)

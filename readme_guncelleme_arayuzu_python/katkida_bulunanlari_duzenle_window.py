@@ -13,7 +13,6 @@ from PyQt5.QtWidgets import (
     QLineEdit,
     QScrollArea,
 )
-import re
 from katkida_bulunan_ekle_window import KatkidaBulunanEkleWindow
 from PyQt5.QtCore import Qt
 from degiskenler import *

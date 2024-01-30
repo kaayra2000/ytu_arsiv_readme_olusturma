@@ -12,6 +12,7 @@ from PyQt5.QtWidgets import (
     QMessageBox,
     QHBoxLayout,
 )
+from coklu_satir_girdi_dialog import SatirAtlayanInputDialog
 import json
 from PyQt5.QtCore import Qt
 from degiskenler import *
@@ -173,8 +174,8 @@ class TalimatDialog(QDialog):
     def talimatDuzenle(self, index):
         # Düzenleme dialogunu aç
         talimat = self.repo_data[TALIMATLAR][index]
-        yeni_talimat, ok = QInputDialog.getText(
-            self, "Talimat Düzenle", "Talimat:", QLineEdit.Normal, talimat
+        yeni_talimat, ok = SatirAtlayanInputDialog.getMultiLineText(
+            self, "Talimat Düzenle", "Talimat:", talimat
         )
         if ok and yeni_talimat:
             self.repo_data[TALIMATLAR][index] = yeni_talimat
@@ -193,7 +194,7 @@ class TalimatDialog(QDialog):
             self.jsonGuncelle()
 
     def talimatEkle(self):
-        yeni_talimat, ok = QInputDialog.getText(self, "Talimat Ekle", "Yeni Talimat:")
+        yeni_talimat, ok = SatirAtlayanInputDialog.getMultiLineText(self, "Talimat Ekle", "Yeni Talimat:")
         if ok and yeni_talimat:
             cevap = QMessageBox.question(
                 self,
@@ -205,6 +206,7 @@ class TalimatDialog(QDialog):
             if cevap == QMessageBox.Yes:
                 self.repo_data[TALIMATLAR].append(yeni_talimat)
                 self.jsonGuncelle()
+
 
     def jsonGuncelle(self):
         with open(self.json_dosyasi, "w", encoding="utf-8") as file:
@@ -295,7 +297,7 @@ class KavramDetayDialog(QDialog):
 
     def aciklamaDuzenle(self, index):
         eski_aciklama = self.kavram[ACIKLAMALAR][index]
-        yeni_aciklama, ok = QInputDialog.getText(
+        yeni_aciklama, ok = SatirAtlayanInputDialog.getMultiLineText(
             self, "Açıklama Düzenle", "Açıklama:", text=eski_aciklama
         )
 
@@ -329,7 +331,7 @@ class KavramDetayDialog(QDialog):
             self.aciklamaListele()
 
     def aciklamaEkle(self):
-        yeni_aciklama, ok = QInputDialog.getText(
+        yeni_aciklama, ok = SatirAtlayanInputDialog.getMultiLineText(
             self, "Açıklama Ekle", "Yeni Açıklama:"
         )
         if ok and yeni_aciklama:
@@ -397,7 +399,7 @@ class KavramDialog(QDialog):
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_F and event.modifiers() & Qt.ControlModifier:
-            text, ok = QInputDialog.getText(self, "Arama", "Aranacak açıklama:")
+            text, ok = QInputDialog.getText(self, "Arama", "Aranacak kavram:")
             if ok:
                 self.searchKavram(text)
 
@@ -714,8 +716,8 @@ class AciklamaDialog(QDialog):
 
     def aciklamaDuzenle(self, index):
         aciklama = self.repo_data[ACIKLAMALAR][index]
-        yeni_aciklama, ok = QInputDialog.getText(
-            self, "Açıklama Düzenle", "Açıklama:", QLineEdit.Normal, aciklama
+        yeni_aciklama, ok = SatirAtlayanInputDialog.getMultiLineText(
+            self, "Açıklama Düzenle", "Açıklama:", aciklama
         )
         if ok and yeni_aciklama:
             self.repo_data[ACIKLAMALAR][index] = yeni_aciklama
@@ -734,7 +736,7 @@ class AciklamaDialog(QDialog):
             self.jsonGuncelle()
 
     def aciklamaEkle(self):
-        yeni_aciklama, ok = QInputDialog.getText(
+        yeni_aciklama, ok = SatirAtlayanInputDialog.getMultiLineText(
             self, "Açıklama Ekle", "Yeni Açıklama:"
         )
         if ok and yeni_aciklama:

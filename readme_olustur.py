@@ -699,7 +699,7 @@ def donemlere_gore_readme_olustur(donemler):
                 f.write(
                     f"- 💡 {tavsiye}\n"
                 )  # Ampul emoji, fikir veya tavsiye temsil eder
-            if donem[DONEM_ADI] != "Mesleki Seçmeli Dersler":
+            if donem.get(YIL,0) != 0:
                 f.write("## 📚 Dönemin Zorunlu Dersleri\n\n")
                 # Kitap emoji, zorunlu dersleri temsil eder
         custom_write(f"{donem[DONEM_ADI]} README.md oluşturuldu.\n")

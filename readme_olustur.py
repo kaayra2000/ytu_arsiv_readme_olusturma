@@ -712,7 +712,7 @@ def ders_bilgilerini_readme_ile_birlestir(
     for ders in dersler:
         custom_write(f"{ders[AD]} README.md dönemine ekleniyor...\n")
         for donem in donemler:
-            if ders[YIL] == donem[YIL] and ders[DONEM] == donem[DONEM]:
+            if ders[YIL] == donem[YIL] and ders[DONEM] == donem[DONEM] and (not (ders[YIL] == 0 or ders[DONEM] == "") or ders[TIP] == donem[DONEM_ADI]):
                 dosya_yolu = os.path.join(
                     donem_dosya_yolu_getir(donem, DOKUMANLAR_REPO_YOLU), README_MD
                 )

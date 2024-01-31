@@ -269,7 +269,9 @@ class DonemDuzenlemeWindow(QDialog):
                 else:
                     break
         return True
-
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key.Key_S and event.modifiers() & Qt.KeyboardModifier.ControlModifier:
+            self.kaydet()
     def kaydet(self):
         cevap = QMessageBox.question(
             self,

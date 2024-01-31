@@ -21,7 +21,7 @@ from threadler import HocaKaydetThread
 from progress_dialog import CustomProgressDialog
 from hoca_kisaltma_olustur import hoca_kisaltma_olustur
 from degiskenler import *
-from PyQt6.QtGui import QIcon
+from PyQt6.QtGui import QIcon, QKeyEvent
 from metin_islemleri import kisaltMetin
 
 # LİNKLERİN TUTULDUĞU VERİELRİ KONTROL EDİP OLMAYAN DEĞERLERİ GÜNCELLEME
@@ -407,7 +407,9 @@ class HocaDuzenlemeWindow(QDialog):
 
         # Yatay düzeni ana düzene ekle
         self.layout.addLayout(buttonsLayout)
-
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key.Key_S and event.modifiers() & Qt.KeyboardModifier.ControlModifier:
+            self.kaydet()
     def dersEkleComboBox(self, hoca_ders=None):
         if len(self.dersler) == 0:
             QMessageBox.critical(
@@ -493,6 +495,15 @@ class HocaDuzenlemeWindow(QDialog):
             return False
 
     def kaydet(self):
+        cevap = QMessageBox.question(
+            self,
+            "Onay",
+            "Değişiklikleri kaydetmek istediğinize emin misiniz?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+        )
+        if cevap == QMessageBox.StandardButton.No:
+            QMessageBox.information(self, "İptal", "Değişiklikler kaydedilmedi.")
+            return
         self.thread = HocaKaydetThread(self.hoca, self.data, self)
         self.thread.finished.connect(
             self.islemTamamlandi

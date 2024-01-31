@@ -89,7 +89,7 @@ class GitIslemleriWindow(QDialog):
         )
         # Thread'i başlat
         self.thread = CMDScriptRunnerThread(script_path, islem)
-        if script_path == "git pull":
+        if script_path == "git fetch --all && git reset --hard origin/main":
             self.thread.finished.connect(self.interface_updated_succesfully)
         else:
             self.thread.finished.connect(self.on_finished)

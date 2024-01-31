@@ -483,7 +483,6 @@ class KaynakVeOneriDuzenleyici(QDialog):
 
             # Arayüzü güncelle
             self.arayuzuGuncelle()
-
     def arayuzuGuncelle(self):
         # Ebeveyn sınıfın dersleri yenileme metodunu çağır
         if self.parent and hasattr(self.parent, "dersleriYenile"):
@@ -624,7 +623,9 @@ class YeniElemanEklemeDialog(QDialog):
         self.kaydetBtn.setStyleSheet(EKLE_BUTONU_STILI)  # Yeşil arka plan
         self.kaydetBtn.clicked.connect(self.kaydet)
         self.layout.addWidget(self.kaydetBtn)
-
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key.Key_S and event.modifiers() & Qt.KeyboardModifier.ControlModifier:
+            self.kaydet()
     def closeEvent(self, event):
         closeEventHandler(self, event, self.is_programmatic_close)
 
@@ -633,6 +634,9 @@ class YeniElemanEklemeDialog(QDialog):
             self.sahibiEdit.text() if self.tur == DERSE_DAIR_ONERILER else None
         )
         metin = self.metinEdit.toPlainText()
+        if not oneriSahibi and self.tur == DERSE_DAIR_ONERILER:
+            QMessageBox.warning(self, "Hata", "Kaynak boş olamaz!")
+            return
         if (not oneriSahibi and self.tur == DERSE_DAIR_ONERILER) or not metin:
             QMessageBox.warning(self, "Hata", "Öneri sahibi ve öneri boş olamaz!")
             return
@@ -859,7 +863,9 @@ class DersDuzenlemeWindow(QDialog):
     # Kapatma tuşuna basılırsa emin misin diye sor
     def closeEvent(self, event):
         closeEventHandler(self, event, self.is_programmatic_close)
-
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key.Key_S and event.modifiers() == Qt.KeyboardModifier.ControlModifier:
+            self.kaydet()
     def ekleHocaComboBox(self, hoca=None):
         if len(self.hoca_listesi) < 1:
             QMessageBox.warning(self, "Hata", "Hoca listesi boş!")
@@ -936,7 +942,14 @@ class DersDuzenlemeWindow(QDialog):
                     ZORUNLU + " olmayan dersler dönem bilgisi içermemelidir!",
                 )
                 return
-
+        cevap = QMessageBox.question(
+            self,
+            "Onay",
+            "Değişiklikleri Kaydetmek İstediğine Emin Misin?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+        )
+        if cevap != QMessageBox.StandardButton.Yes:
+            return
         # Seçili hocaların kısaltmalarını al
         hocalar_kisaltmalar = [
             combo.currentData() for combo, _ in self.hocalarComboBoxlar

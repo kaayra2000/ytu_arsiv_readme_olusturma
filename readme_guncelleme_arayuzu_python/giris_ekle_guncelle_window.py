@@ -163,7 +163,7 @@ class GirisEkleGuncelleWindow(YazarinNotlariWindow):
         for idx, not_ in enumerate(self.data[ICINDEKILER]):
             widget = self.notlarLayout.itemAt(idx).widget()
             if isinstance(widget, QPushButton):
-                if query.lower() in not_.lower():
+                if query.replace('İ','i').lower() in not_.replace('İ','i').lower():
                     widget.show()
                     size += 1
                 else:

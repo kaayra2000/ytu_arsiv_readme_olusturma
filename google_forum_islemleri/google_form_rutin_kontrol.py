@@ -83,7 +83,7 @@ def update_repository(deneme_sayisi=0):
             )
             exit(1)
 
-        if not execute_command("git fetch"):
+        if not execute_command("git fetch --all"):
             custom_write_error(
                 "Fetch sırasında conflict oluştu, script durduruluyor.\n"
             )
@@ -92,9 +92,6 @@ def update_repository(deneme_sayisi=0):
             custom_write_error(
                 "Reset sırasında conflict oluştu, script durduruluyor.\n"
             )
-            return
-        if not execute_command("git pull"):
-            custom_write_error("Pull sırasında conflict oluştu, script durduruluyor.\n")
             return
         os.chdir(original_directory)
         if not execute_command(google_form_guncelle_komutu):

@@ -104,17 +104,17 @@ def update_repository(deneme_sayisi=0):
         os.chdir(DOKUMANLAR_REPO_YOLU)
         if not execute_command("git add --all"):
             custom_write_error(
-                "Git add sırasında conflict oluştu, script durduruluyor.\n"
+                "Git add işlemi başarısız..."
             )
             return
         if not execute_command('git commit -m "rutin readme güncellemesi (robot)"'):
             custom_write_error(
-                "Git commit sırasında conflict oluştu, script durduruluyor.\n"
+                "Git commit işlemi başarısız, muhtemelen herhangi bir dosya değişmedi..."
             )
             return
         if not execute_command("git push"):
             custom_write_error(
-                "Git push sırasında conflict oluştu, script durduruluyor.\n"
+                "Git push işlemi başarısız..."
             )
             return
         custom_write(f"{deneme_sayisi}. güncelleme başarıyla uygulandı.\n")

@@ -52,7 +52,7 @@ def execute_command(command):
             if error_output:
                 custom_write_error(error_output + "\n")
             # İşlem sonucunu kontrol et
-            process.wait()
+            process.wait(timeout=20)
             if process.returncode != 0:
                 raise subprocess.CalledProcessError(process.returncode, command)
     except subprocess.CalledProcessError as e:

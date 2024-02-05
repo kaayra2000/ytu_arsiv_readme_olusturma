@@ -59,6 +59,16 @@ def execute_command(command):
         # Komut hata ile sonuçlanırsa, hatayı yazdır
         custom_write_error(f"Komut hatası: {e}\n")
         return False
+    except subprocess.TimeoutExpired:
+        # Zaman aşımı durumunda işlemi sonlandır
+        process.kill()
+        # Zaman aşımına uğrayan işlemin çıktısını oku
+        outs, errs = process.communicate()
+        custom_write("Komut zaman aşımına uğradı, işlem güvenli bir şekilde sonlandırıldı.\n")
+        if outs:
+            custom_write(outs)
+        if errs:
+            custom_write_error(errs)
     return True
 
 

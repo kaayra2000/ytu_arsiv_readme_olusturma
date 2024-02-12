@@ -8,7 +8,7 @@ df['2024 Maaşı (Aylık net ortalama)'] = df['2024 Maaşı (Aylık net ortalama
 # Çalışma Durumuna göre veriyi grupla ve analiz et
 for durum in df['Çalışma Durumu'].unique():
     print(f"\n### {durum} için Maaş Analizi\n")
-    durum_df = df[df['Çalışma Durumu'] == durum]
+    durum_df = df[df['Çalışma Durumu'] == durum].copy()
     # 1-) Şirketlere göre 2023 ve 2024 ortalaması
     company_avg = durum_df.groupby('Şirket Adı')[['2023 Maaşı (Aylık net ortalama)', '2024 Maaşı (Aylık net ortalama)']].mean()
 
@@ -56,9 +56,9 @@ for durum in df['Çalışma Durumu'].unique():
 
     # Genel Maaş Ortalamaları ve Artış Oranı için Markdown tablosunu oluşturan kod
     genel_maas_tablosu = """
-    | Ortalama Maaş (Aylık net ortalama) 2023 | Ortalama Maaş (Aylık net ortalama) 2024 | Maaş Artış Oranı (%) |
-    |----------------------------------------|----------------------------------------|----------------------|
-    | {ortalama_2023:.2f}                     | {ortalama_2024:.2f}                     | {artis_orani:.2f}    |
+| Ortalama Maaş (Aylık net ortalama) 2023 | Ortalama Maaş (Aylık net ortalama) 2024 | Maaş Artış Oranı (%) |
+|----------------------------------------|----------------------------------------|----------------------|
+| {ortalama_2023:.2f}                     | {ortalama_2024:.2f}                     | {artis_orani:.2f}    |
     """.format(ortalama_2023=general_avg['2023 Maaşı (Aylık net ortalama)'],
             ortalama_2024=general_avg['2024 Maaşı (Aylık net ortalama)'],
             artis_orani=general_increase_rate)

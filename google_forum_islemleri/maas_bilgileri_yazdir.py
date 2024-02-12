@@ -7,8 +7,8 @@ df = pd.read_csv(url)
 df['2024 Maaşı (Aylık net ortalama)'] = df['2024 Maaşı (Aylık net ortalama)'].fillna(df['2023 Maaşı (Aylık net ortalama)'])
 # Çalışma Durumuna göre veriyi grupla ve analiz et
 for durum in df['Çalışma Durumu'].unique():
-    print(f"\n### {durum} için Maaş Analizi\n")
-    durum_df = df[df['Çalışma Durumu'] == durum]
+    print(f"\n#### {durum} için Maaş Analizi\n")
+    durum_df = df[df['Çalışma Durumu'] == durum].copy()
     # 1-) Şirketlere göre 2023 ve 2024 ortalaması
     company_avg = durum_df.groupby('Şirket Adı')[['2023 Maaşı (Aylık net ortalama)', '2024 Maaşı (Aylık net ortalama)']].mean()
 
@@ -62,21 +62,21 @@ for durum in df['Çalışma Durumu'].unique():
     """.format(ortalama_2023=general_avg['2023 Maaşı (Aylık net ortalama)'],
             ortalama_2024=general_avg['2024 Maaşı (Aylık net ortalama)'],
             artis_orani=general_increase_rate)
-    print("\n#### Genel Maaş Ortalamaları ve Artış Oranı\n")
+    print("\n##### Genel Maaş Ortalamaları ve Artış Oranı\n")
     print(genel_maas_tablosu)
 
 
     # Sonuçları Markdown formatında yazdıralım (sıralı tecrübe süresiyle)
-    print("\n\n\n#### Tecrübeye Göre Maaş Ortalamaları ve Artış Oranları\n")
+    print("\n\n\n##### Tecrübeye Göre Maaş Ortalamaları ve Artış Oranları\n")
     print(experience_avg[['Tecrübe Süresi', '2023 Maaşı (Aylık net ortalama)', '2024 Maaşı (Aylık net ortalama)', 'Maaş Artış Oranı (%)']].to_markdown(index=False))
 
     # Markdown formatında alana göre maaş ortalamaları ve artış oranlarını yazdıralım
-    print("\n\n\n#### Alana Göre Maaş Ortalamaları ve Artış Oranları\n")
+    print("\n\n\n##### Alana Göre Maaş Ortalamaları ve Artış Oranları\n")
     print(field_avg.to_markdown())
 
 
     # Şimdi Markdown formatında sonuçları yazdıralım
-    print("\n\n\n#### Şirketlere Göre Maaş Ortalamaları ve Artış Oranları\n")
+    print("\n\n\n##### Şirketlere Göre Maaş Ortalamaları ve Artış Oranları\n")
     print(company_avg.to_markdown())
 # Ankete katılan kişi sayısını hesapla
 katilan_kisi_sayisi = len(df)

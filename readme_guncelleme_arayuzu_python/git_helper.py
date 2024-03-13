@@ -234,7 +234,6 @@ class GitDialog(QDialog):
             return
         commit_msg = '"' + commit_msg + '"'
         self.commit_and_push(commit_msg=commit_msg)
-        self.close()
 
     def commit_and_push(self, commit_msg):
         self.progress_dialog = CustomProgressDialogWithCancel(
@@ -268,6 +267,7 @@ class GitDialog(QDialog):
         self.thread.wait()
         del self.thread
         del self.progress_dialog
+        self.close()
         QMessageBox.information(self, "Başarılı", output)
 
     def thread_durduruluyor(self):

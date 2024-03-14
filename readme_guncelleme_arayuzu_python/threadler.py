@@ -136,9 +136,11 @@ class KatkiEkleThread(QThread):
 
 
 def enqueue_output(out, queue):
-    for line in iter(out.readline, ""):
-        queue.put(line)
-    out.close()
+    try:
+        for line in iter(out.readline, ""):
+            queue.put(line)
+    finally:
+        out.close()
 
 
 class CMDScriptRunnerThread(QThread):

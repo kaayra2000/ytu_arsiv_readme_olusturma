@@ -161,7 +161,6 @@ class GitDialog(QDialog):
         self.stagedList = QListWidget()
         self.commitMessage = QTextEdit()
         self.amendCheckBox = QCheckBox("Amend")
-        self.amendCheckBox.setEnabled(False)
         pushButton = QPushButton("Değişiklikleri Pushla")
         add_all_btn = QPushButton("Tüm değişiklikleri ekle")
         add_all_btn.setStyleSheet(EKLE_BUTONU_STILI)
@@ -334,7 +333,7 @@ class GitDialog(QDialog):
                 break  # Eşleşme bulunduğunda döngüden çık
 
     def pushChanges(self):
-        if self.stagedList.count() == 0:
+        if self.stagedList.count() == 0 and not self.amendCheckBox.isChecked():
             QMessageBox.warning(self, "Hata", "Kaydedilen dosya yok.")
             return
 
@@ -355,8 +354,10 @@ class GitDialog(QDialog):
                 self, "İptal Edildi", "Pushlama işlemi iptal edildi."
             )
             return
-        commit_msg = '"' + commit_msg + '"'
-        komut = f"git -C {self.repo_path} commit -m {commit_msg} && git -C {self.repo_path} push"
+        if self.amendCheckBox.isChecked():
+            komut = f'git -C "{self.repo_path}" commit --amend -m "{commit_msg}" && git -C "{self.repo_path}" push --force-with-lease'
+        else:
+            komut = f'git -C "{self.repo_path}" commit -m "{commit_msg}" && git -C "{self.repo_path}" push'
         self.komut_calistir(
             thread_basligi="Git Push", baslik="Pushlanıyor", komut=komut
         )

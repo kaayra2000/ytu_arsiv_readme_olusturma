@@ -1,5 +1,12 @@
 import subprocess
-from degiskenler import SIL_BUTONU_STILI, EKLE_BUTONU_STILI
+from degiskenler import (
+    SIL_BUTONU_STILI,
+    EKLE_BUTONU_STILI,
+    SAVE_ICO_PATH,
+    DELETE_ICO_PATH,
+    RESTORE_ICO_PATH,
+    INFO_ICO_PATH,
+)
 from PyQt6.QtWidgets import (
     QDialog,
     QVBoxLayout,
@@ -15,7 +22,8 @@ from PyQt6.QtWidgets import (
     QListWidgetItem,
     QSplitter,
 )
-from PyQt6.QtCore import Qt, QTimer
+from PyQt6.QtGui import QIcon
+from PyQt6.QtCore import Qt, QTimer, QSize
 import textwrap
 from progress_dialog import CustomProgressDialogWithCancel, CustomProgressDialog
 from threadler import CMDScriptRunnerThread
@@ -32,11 +40,15 @@ class GitHelper:
             try:
                 with open(full_path, "r", encoding="utf-8") as file:
                     return file.read()
+            except FileNotFoundError:
+                return "Dosya Silindi"
             except IOError as e:
                 print("Dosya okuma hatası:", e)
                 return ""
         else:
             # Belirli bir commit'teki dosya içeriğini git show ile al
+            if file_path[0] == '"':
+                file_path = file_path[1 : len(file_path) - 1]
             cmd = [
                 "git",
                 "-C",
@@ -76,7 +88,7 @@ class GitHelper:
     def git_add(repo_path, file_path):
         if file_path[0] != '"':
             file_path = '"' + file_path + '"'
-        subprocess.run(f"git -C {repo_path} add {file_path}", shell=True)
+        subprocess.run(f"git -C {repo_path} add -- {file_path}", shell=True)
 
     @staticmethod
     def git_add_all(repo_path):
@@ -90,7 +102,7 @@ class GitHelper:
     def git_reset(repo_path, file_path):
         if file_path[0] != '"':
             file_path = '"' + file_path + '"'
-        subprocess.run(f"git -C {repo_path} reset {file_path}", shell=True)
+        subprocess.run(f"git -C {repo_path} reset -- {file_path}", shell=True)
 
     @staticmethod
     def git_commit(repo_path, message):
@@ -102,7 +114,10 @@ class GitHelper:
 
     @staticmethod
     def git_restore(repo_path, file_path):
-        subprocess.run(["git", "-C", repo_path, "restore", "file_path"])
+        subprocess.run(
+            f"git -C {repo_path} restore -- {file_path}",
+            shell=True,
+        )
 
     @staticmethod
     def git_diff(repo_path, file_name):
@@ -414,32 +429,62 @@ class FileItemWidget(QWidget):
         btn_layout = QVBoxLayout()
         self.label = QLabel()
         self.label.setSizePolicy(getMaxSizeYatay())
-        # burası güncellenecek restore buton eklenecek
-        # burası güncellenecek restore buton eklenecek
-        # burası güncellenecek restore buton eklenecek
-        # burası güncellenecek restore buton eklenecek
-        # burası güncellenecek restore buton eklenecek
-        # burası güncellenecek restore buton eklenecek
-        # burası güncellenecek restore buton eklenecek
-        # burası güncellenecek restore buton eklenecek
-        # burası güncellenecek restore buton eklenecek
-        # burası güncellenecek restore buton eklenecek
-        # burası güncellenecek restore buton eklenecek
-        # burası güncellenecek restore buton eklenecek
-        # burası güncellenecek restore buton eklenecek
-        # burası güncellenecek restore buton eklenecek GitHelper.git_restore
         self.label.setText(self.elideText(self.file_name))
         self.label.setToolTip(self.file_name)  # Tam dosya adını tooltip olarak ekleme
-        button = QPushButton("Kaydet" if not self.is_staged else "Sil")
-        button.setStyleSheet(SIL_BUTONU_STILI if self.is_staged else EKLE_BUTONU_STILI)
-        button.clicked.connect(self.onButtonClick)
-        diff_btn = QPushButton("Farkı Gör")
+        btns = []
+        # Kaydet/Sil butonu
+        save_delete_button = QPushButton()
+        save_delete_button.setIcon(
+            QIcon(SAVE_ICO_PATH if not self.is_staged else DELETE_ICO_PATH)
+        )  # İkon yolu
+        save_delete_button.clicked.connect(lambda: self.onButtonClick(True))
+        btns.append(save_delete_button)
+        # Farkı Gör butonu
+        diff_btn = QPushButton()
+        diff_btn.setIcon(QIcon(INFO_ICO_PATH))  # İkon yolu
         diff_btn.clicked.connect(self.showGitDiff)
-        btn_layout.addWidget(button)
-        btn_layout.addWidget(diff_btn)
+        btns.append(diff_btn)
+        if not self.is_staged:
+            # Restore butonu
+            restore_btn = QPushButton()
+            restore_btn.setIcon(QIcon(RESTORE_ICO_PATH))  # İkon yolu
+            restore_btn.clicked.connect(self.onRestoreClick)
+            btns.append(restore_btn)
+        # Buton boyutlarını ayarla
+        for btn in btns:
+            btn.setStyleSheet("min-width: 12px; min-height: 12px;")
+            btn.setFixedSize(QSize(12, 60))  # Küçük buton boyutu
+            btn_layout.addWidget(btn)
+
         layout.addWidget(self.label)
         layout.addLayout(btn_layout)
         self.setLayout(layout)
+
+    def onRestoreClick(self):
+        reply = QMessageBox.question(
+            self,
+            "Emin Misiniz?",
+            f"{self.file_name} Dosyasının tüm değişikliklerini eski haline getirmek istediğinize emin misiniz? (İşlem geri alınamaz!!!)",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
+        if reply == QMessageBox.StandardButton.No:
+            QMessageBox.information(
+                self,
+                "İptal Edildi",
+                "Dosyanın tüm değişikliklerini eski haline getirme işlemi iptal edildi.",
+            )
+            return
+        GitHelper.git_restore(self.parent.repo_path, self.file_name)
+        if self.is_staged:
+            self.parent.removeFileItem(self.parent.stagedList, self.file_name)
+        else:
+            self.parent.removeFileItem(self.parent.unstagedList, self.file_name)
+        QMessageBox.information(
+            self,
+            "Başarılı!!!",
+            f"{self.file_name} dosyasının tüm değişiklikleri orjinal haline getirildi...",
+        )
 
     def elideText(self, text, max_length=40):
         if len(text) <= max_length:

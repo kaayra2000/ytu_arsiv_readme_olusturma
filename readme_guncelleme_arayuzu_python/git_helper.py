@@ -15,9 +15,9 @@ from PyQt6.QtWidgets import (
     QListWidgetItem,
     QSplitter,
 )
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QTimer
 import textwrap
-from progress_dialog import CustomProgressDialogWithCancel
+from progress_dialog import CustomProgressDialogWithCancel, CustomProgressDialog
 from threadler import CMDScriptRunnerThread
 
 
@@ -97,6 +97,10 @@ class GitDialog(QDialog):
         self.setModal(True)
         self.repo_path = repo_path
         self.setMinimumSize(550, 650)
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.processNextItem)
+        self.status_lines = []
+        self.current_index = 0  # Şu an işlenmekte olan satırın indeksi
         self.initUI()
 
     def initUI(self):
@@ -144,7 +148,42 @@ class GitDialog(QDialog):
         add_all_btn.clicked.connect(self.tumDegisiklikleriEkle)
         pushButton.clicked.connect(self.pushChanges)
         delete_all_btn.clicked.connect(self.tumDegisiklikleriSil)
+
+    def getStatusToInterface(self):
         self.populateChanges()
+        self.setupInitTimer()
+
+    def setupInitTimer(self):
+        # QTimer nesnesi oluşturulur
+        self.init_timer = QTimer(self)
+        # QTimer sinyali ile `processNextLine` metodunu bağla
+        self.init_timer.timeout.connect(self.processNextLine)
+        # QTimer'ı başlat (her 10 ms de bir)
+        self.init_timer.start(10)
+
+    def populateChanges(self):
+        self.init_progress_dialog = CustomProgressDialog("Arayüz yükleniyor...", self)
+        # GitHelper'dan gelen durum satırlarını al
+        self.status_lines = GitHelper.git_status(self.repo_path)
+        self.current_index = 0  # İndeksi sıfırla
+        self.init_progress_dialog.show()
+        # Timer'ı manuel olarak burada başlatabilirsiniz ya da başka bir yerde başlatmış olabilirsiniz
+        # Eğer burada başlatmak istiyorsanız, yorumu kaldırın:
+        # self.init_timer.start(10)
+
+    def processNextLine(self):
+        if self.current_index < len(self.status_lines):
+            line = self.status_lines[self.current_index]
+            if len(line) > 0:
+                if line.startswith(" ") or line.startswith("??"):
+                    self.addFileItem(self.unstagedList, line[3:], is_staged=False)
+                else:
+                    self.addFileItem(self.stagedList, line[3:], is_staged=True)
+            self.current_index += 1
+        else:
+            self.init_timer.stop()  # Listenin sonuna ulaştığımızda timer'ı durdur
+            self.init_progress_dialog.close()
+            del self.init_progress_dialog
 
     def tumDegisiklikleriEkle(self):
         if len(self.unstagedList) == 0:
@@ -165,9 +204,18 @@ class GitDialog(QDialog):
             )
             return
 
-        for unstagedItem in self.getItemsFromListWidget(self.unstagedList):
-            unstagedItem.onButtonClick()
-        GitHelper.git_add_all(self.repo_path)
+        self.itemsToProcess = iter(self.getItemsFromListWidget(self.unstagedList))
+        self.timer.start(
+            30
+        )  # 10 ms (0.01 saniye) aralıklarla `processNextItem`'ı çağır
+        komut = f"git -C {self.repo_path} add --all"
+        self.git_progress_dialog = CustomProgressDialog(
+            "Arayüz değişiklikleri uyguluyor", self
+        )
+        self.git_progress_dialog.show()
+        self.komut_calistir(
+            "Tüm Elemanları Ekleme", "Ekleniyor", komut, kapansin_mi=False
+        )
 
     def tumDegisiklikleriSil(self):
         if len(self.stagedList) == 0:
@@ -186,19 +234,30 @@ class GitDialog(QDialog):
                 self, "İptal Edildi", "Tüm değişiklikleri iptal işlemi iptal edildi."
             )
             return
+        self.itemsToProcess = iter(self.getItemsFromListWidget(self.stagedList))
+        self.timer.start(
+            30
+        )  # 10 ms (0.01 saniye) aralıklarla `processNextItem`'ı çağır
+        komut = f"git -C {self.repo_path} reset HEAD"
+        self.git_progress_dialog = CustomProgressDialog(
+            "Arayüz değişiklikleri uyguluyor", self
+        )
+        self.git_progress_dialog.show()
+        self.komut_calistir(
+            "Tüm Elemanları Çıkarma", "Çıkarılıyor", komut, kapansin_mi=False
+        )
 
-        for unstagedItem in self.getItemsFromListWidget(self.stagedList):
-            unstagedItem.onButtonClick()
-        GitHelper.git_reset_all(self.repo_path)
-
-    def populateChanges(self):
-        status_lines = GitHelper.git_status(self.repo_path)
-        for line in status_lines:
-            if len(line) > 0:
-                if line.startswith(" ") or line.startswith("??"):
-                    self.addFileItem(self.unstagedList, line[3:], is_staged=False)
-                else:
-                    self.addFileItem(self.stagedList, line[3:], is_staged=True)
+    def processNextItem(self):
+        try:
+            # Sonraki öğeyi al ve işle
+            unstagedItem = next(self.itemsToProcess)
+            unstagedItem.onButtonClick(git_komutunu_uygula=False)
+        except StopIteration:
+            # İşlenecek öğe kalmadıysa, timer'ı durdur
+            self.timer.stop()
+            self.git_progress_dialog.close()
+            del self.git_progress_dialog
+            QMessageBox.information(self, "Başarılı", "Arayüz Değişiklikleri Uygulandı")
 
     def addFileItem(self, list_widget, file_name, is_staged):
         item = QListWidgetItem(list_widget)
@@ -251,16 +310,21 @@ class GitDialog(QDialog):
             )
             return
         commit_msg = '"' + commit_msg + '"'
-        self.commit_and_push(commit_msg=commit_msg)
-
-    def commit_and_push(self, commit_msg):
-        self.progress_dialog = CustomProgressDialogWithCancel(
-            "Pushlanıyor", self, self.thread_durduruluyor
-        )
         komut = f"git -C {self.repo_path} commit -m {commit_msg} && git -C {self.repo_path} push"
+        self.komut_calistir(
+            thread_basligi="Git Push", baslik="Pushlanıyor", komut=komut
+        )
+
+    def komut_calistir(self, thread_basligi, baslik, komut, kapansin_mi=True):
+        self.progress_dialog = CustomProgressDialogWithCancel(
+            baslik, self, self.thread_durduruluyor
+        )
         # Thread'i başlat
-        self.thread = CMDScriptRunnerThread(komut, "Git Push")
-        self.thread.finished.connect(self.on_finished)
+        self.thread = CMDScriptRunnerThread(komut, thread_basligi)
+        if kapansin_mi:
+            self.thread.finished.connect(self.on_finished)
+        else:
+            self.thread.finished.connect(self.kapanmadan_on_finished)
         self.thread.error.connect(self.on_error)
         self.thread.info.connect(self.info)
         self.thread.start()
@@ -280,12 +344,16 @@ class GitDialog(QDialog):
         # Güncellenmiş mesajı etiket metni olarak ayarla
         self.progress_dialog.setLabelText(wrapped_message)
 
-    def on_finished(self, output):
+    def kapanmadan_on_finished(self, output):
+        self.on_finished(output=output, kapansin_mi=False)
+
+    def on_finished(self, output, kapansin_mi=True):
         self.progress_dialog.close()
         self.thread.wait()
         del self.thread
         del self.progress_dialog
-        self.close()
+        if kapansin_mi:
+            self.close()
         QMessageBox.information(self, "Başarılı", output)
 
     def thread_durduruluyor(self):
@@ -351,19 +419,21 @@ class FileItemWidget(QWidget):
             suffix_length = keep_length - prefix_length
             return text[:prefix_length] + "..." + text[-suffix_length:]
 
-    def onButtonClick(self):
+    def onButtonClick(self, git_komutunu_uygula=True):
         if self.is_staged:
             self.parent.removeFileItem(self.parent.stagedList, self.file_name)
             self.parent.addFileItem(
                 self.parent.unstagedList, self.file_name, is_staged=not self.is_staged
             )
-            GitHelper.git_reset(self.parent.repo_path, self.file_name)
+            if git_komutunu_uygula:
+                GitHelper.git_reset(self.parent.repo_path, self.file_name)
         else:
             self.parent.removeFileItem(self.parent.unstagedList, self.file_name)
             self.parent.addFileItem(
                 self.parent.stagedList, self.file_name, is_staged=not self.is_staged
             )
-            GitHelper.git_add(self.parent.repo_path, self.file_name)
+            if git_komutunu_uygula:
+                GitHelper.git_add(self.parent.repo_path, self.file_name)
 
     def showGitDiff(self):
         diff_output = GitHelper.git_diff(self.parent.repo_path, self.file_name)

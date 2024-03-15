@@ -19,9 +19,40 @@ from PyQt6.QtCore import Qt, QTimer
 import textwrap
 from progress_dialog import CustomProgressDialogWithCancel, CustomProgressDialog
 from threadler import CMDScriptRunnerThread
+import difflib
+import os
 
 
 class GitHelper:
+    @staticmethod
+    def get_file_content_at_commit(repo_path, file_path, commit_hash):
+        if commit_hash == "WORKING":  # "WORKING" özel bir anahtar olarak kullanılıyor
+            # Dosyanın çalışma kopyasındaki şu anki içeriğini oku
+            full_path = os.path.join(repo_path, file_path)
+            try:
+                with open(full_path, "r", encoding="utf-8") as file:
+                    return file.read()
+            except IOError as e:
+                print("Dosya okuma hatası:", e)
+                return ""
+        else:
+            # Belirli bir commit'teki dosya içeriğini git show ile al
+            cmd = [
+                "git",
+                "-C",
+                repo_path,
+                "show",
+                "{}:{}".format(commit_hash, file_path),
+            ]
+            try:
+                output = subprocess.check_output(
+                    cmd, stderr=subprocess.STDOUT, universal_newlines=True
+                )
+                return output
+            except subprocess.CalledProcessError as e:
+                print("Git show hatası:", e.output)
+                return ""
+
     @staticmethod
     def set_git_quotepath_off(repo_path):
         # Git yapılandırmasını değiştirmek için git config komutunu çağır
@@ -436,44 +467,63 @@ class FileItemWidget(QWidget):
                 GitHelper.git_add(self.parent.repo_path, self.file_name)
 
     def showGitDiff(self):
-        diff_output = GitHelper.git_diff(self.parent.repo_path, self.file_name)
-        diffWindow = DiffWindow(diff_output, diff_output, self)
+        original_content = GitHelper.get_file_content_at_commit(
+            self.parent.repo_path, self.file_name, "main"
+        )
+        modified_content = GitHelper.get_file_content_at_commit(
+            self.parent.repo_path, self.file_name, "WORKING"
+        )
+
+        diffWindow = DiffWindow(
+            original_content,
+            modified_content,
+            self,
+        )
         diffWindow.show()
 
 
 class DiffWindow(QDialog):
-    # DİFF GÖSTERİLMİYOR ŞU AN DÜZENLENECEK
-    def __init__(self, old_text, new_text, parent=None):
-        super().__init__(parent=parent)
+    def __init__(self, original_text, modified_text, parent=None):
+        super().__init__(parent)
         self.setModal(True)
-        self.setMinimumSize(400, 400)
-        self.old_text = old_text
-        self.new_text = new_text
-        self.initUI()
+        self.setWindowTitle("FARK Penceresi")
+        original_layout = QVBoxLayout()
+        modified_layout = QVBoxLayout()
+        original_label = QLabel("Orjinal Hali")
+        modified_label = QLabel("Değişmiş Hali")
+        modified_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        original_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        original_layout.addWidget(original_label)
+        modified_layout.addWidget(modified_label)
+        self.original_text_edit = QTextEdit()
+        self.modified_text_edit = QTextEdit()
 
-    def initUI(self):
-        # Layoutları tanımla
-        self.layout = QHBoxLayout()
-        self.eski_layout = QVBoxLayout()
-        self.yeni_layout = QVBoxLayout()
+        self.original_text_edit.setReadOnly(True)
+        self.modified_text_edit.setReadOnly(True)
 
-        self.eski_layout.addWidget(QLabel("Eskisi"))
-        # Eski metni göster
-        self.oldTextEdit = QTextEdit()
-        self.oldTextEdit.setPlainText(self.old_text)
-        self.oldTextEdit.setReadOnly(True)
+        layout = QHBoxLayout()
+        original_layout.addWidget(self.original_text_edit)
+        modified_layout.addWidget(self.modified_text_edit)
+        layout.addLayout(original_layout)
+        layout.addLayout(modified_layout)
+        self.setLayout(layout)
 
-        self.eski_layout.addWidget(self.oldTextEdit)
-        self.yeni_layout.addWidget(QLabel("Yenisi"))
-        # Yeni metni göster
-        self.newTextEdit = QTextEdit()
-        self.newTextEdit.setPlainText(self.new_text)
-        self.newTextEdit.setReadOnly(True)
-        self.yeni_layout.addWidget(self.newTextEdit)
-        # Layoutlara widget'ları ekle
-        self.layout.addLayout(self.eski_layout)
-        self.layout.addLayout(self.yeni_layout)
+        self.show_diff(original_text, modified_text)
 
-        # Ana pencerenin layout'unu ayarla
-        self.setLayout(self.layout)
-        self.setWindowTitle("Fark Gösterici")
+    def show_diff(self, original_text, modified_text):
+        diff = difflib.ndiff(
+            original_text.splitlines(keepends=True),
+            modified_text.splitlines(keepends=True),
+        )
+
+        original_display = ""
+        modified_display = ""
+
+        for line in diff:
+            if line.startswith("-"):
+                original_display += f'<span style="background-color: #FFCCCC;">{line[2:].rstrip()}</span><br>'
+            elif line.startswith("+"):
+                modified_display += f'<span style="background-color: #CCFFCC;">{line[2:].rstrip()}</span><br>'
+
+        self.original_text_edit.setHtml(original_display)
+        self.modified_text_edit.setHtml(modified_display)

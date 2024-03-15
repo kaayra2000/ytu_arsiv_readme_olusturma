@@ -136,11 +136,13 @@ class KatkiEkleThread(QThread):
 
 
 def enqueue_output(out, queue):
-    try:
-        for line in iter(out.readline, ""):
+
+    for line in iter(out.readline, ""):
+        try:
             queue.put(line)
-    finally:
-        out.close()
+        except:
+            queue.put("Çözümlenemeyen karakter kodlaması")
+    out.close()
 
 
 class CMDScriptRunnerThread(QThread):

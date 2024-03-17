@@ -26,10 +26,15 @@ class KonfigurasyonDialog(QDialog):
         self.comboBox.currentIndexChanged.connect(self.onOptionSelected)
         self.comboBoxLayout.addWidget(self.comboBox)
         
+        self.dokumanPushButton = QPushButton()
+        self.dokumanPushButton.setVisible(False)
+        self.dokumanPushButton.clicked.connect(self.repoSec)
+        self.dokumanPushButton.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         # Sağ tarafta seçeneğin değerini gösterecek QLineEdit
         self.valueEdit = QLineEdit()
         self.valueEdit.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.comboBoxLayout.addWidget(self.valueEdit)
+        self.comboBoxLayout.addWidget(self.dokumanPushButton)
         self.mainLayout.addLayout(self.comboBoxLayout)
 
         self.kaydetButton = QPushButton("Json Kaydet")
@@ -49,13 +54,18 @@ class KonfigurasyonDialog(QDialog):
         self.depoKaydet.setStyleSheet(EKLE_BUTONU_STILI)
         self.mainLayout.addWidget(self.depoKaydet)
         self.readConfig()
-    def jsonDepoSec(self):
+
+    def klasorAc(self, button, baslangic):
         # Kullanıcıya bir klasör seçtirme ve seçilen klasörün yolunu alma
-        secilenKlasorYolu = QFileDialog.getExistingDirectory(self, "Klasör Seç", self.jsonDepoButton.toolTip())
+        secilenKlasorYolu = QFileDialog.getExistingDirectory(self, "Klasör Seç", baslangic)
         if secilenKlasorYolu:
             # Klasör seçildiyse, jsonDepoButton'un metnini güncelle
-            self.jsonDepoButton.setText(elideText(secilenKlasorYolu, max_length=80))
-            self.jsonDepoButton.setToolTip(secilenKlasorYolu)
+            button.setText(elideText(secilenKlasorYolu, max_length=80))
+            button.setToolTip(secilenKlasorYolu)
+    def repoSec(self):
+        self.klasorAc(self.dokumanPushButton, self.dokumanPushButton.toolTip())
+    def jsonDepoSec(self):
+        self.klasorAc(self.jsonDepoButton, self.jsonDepoButton.toolTip())
     def depoDosyasiKaydet(self):
         secilenYol = self.jsonDepoButton.toolTip()
         if secilenYol == self.yol:
@@ -107,24 +117,31 @@ class KonfigurasyonDialog(QDialog):
             QMessageBox.critical(self, "Hata", f"Konfigürasyon dosyası okunamadı: {e}")
     
     def konfKaydet(self):
-        # Kullanıcıya onay sorusu sor
-        cevap = QMessageBox.question(self, "Değişiklikleri Kaydet", "Değişiklikleri kaydetmek istediğinize emin misiniz?",
-                                    QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No)
-
-        if cevap == QMessageBox.StandardButton.No:
-            QMessageBox.information(self, "İptal", "Değişiklik Kaydedilmedi")
-            return
         try:
             # Seçili anahtarın yeni değerini config sözlüğüne kaydetme
             selectedKey = self.comboBox.currentText()  # Seçili anahtar
-            newValue = self.valueEdit.text()  # Kullanıcı tarafından girilen yeni değer
+            if selectedKey == DOKUMANLAR_REPO_YOLU_ANAHTARI:
+                newValue = self.depo_yol_getir()
+            else:
+                newValue = self.valueEdit.text()  # Kullanıcı tarafından girilen yeni değer
+            if newValue == self.config[selectedKey]:
+                QMessageBox.critical(self ,"Hata", "Değeri değiştirmediniz...")
+                return
+                    # Kullanıcıya onay sorusu sor
+            cevap = QMessageBox.question(self, "Değişiklikleri Kaydet", "Değişiklikleri kaydetmek istediğinize emin misiniz?",
+                                        QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No)
+
+            if cevap == QMessageBox.StandardButton.No:
+                QMessageBox.information(self, "İptal", "Değişiklik Kaydedilmedi")
+                return
             self.config[selectedKey] = newValue
             self.konfJsonaYaz()
             QMessageBox.information(self, "Başarılı", "Değişiklikler başarıyla kaydedildi.")
 
         except Exception as e:
             QMessageBox.critical(self, "Hata", f"Konfigürasyon dosyası kaydedilemedi: {e}")
-
+    def depo_yol_getir(self):
+        return os.path.relpath(self.dokumanPushButton.text(),self.yol).replace(os.path.sep, "/")
     def konfJsonaYaz(self):
         # Güncellenmiş config sözlüğünü JSON dosyasına yazma
         with open(KONFIGURASYON_JSON_PATH, "w", encoding="utf-8") as file:
@@ -132,7 +149,18 @@ class KonfigurasyonDialog(QDialog):
     def onOptionSelected(self, index):
         if index >= 0:
             selectedKey = self.comboBox.itemText(index)
-            self.valueEdit.setText(self.config.get(selectedKey, ""))
+            if selectedKey == DOKUMANLAR_REPO_YOLU_ANAHTARI:
+                self.valueEdit.setVisible(False)
+                self.dokuman_repo_yol = os.path.join(self.yol, self.config[DOKUMANLAR_REPO_YOLU_ANAHTARI])
+                self.dokuman_repo_yol = os.path.realpath(self.dokuman_repo_yol)
+                self.dokumanPushButton.setText(elideText(self.dokuman_repo_yol,max_length=80))
+                self.dokumanPushButton.setToolTip(self.dokuman_repo_yol)
+                self.dokumanPushButton.setVisible(True)
+            else:
+                if self.valueEdit.isVisible() == False:
+                    self.valueEdit.setVisible(True)
+                    self.dokumanPushButton.setVisible(False)
+                self.valueEdit.setText(self.config.get(selectedKey, ""))
     def dosya_yolu_olustur(self):
         try:
             # Dosya okuma

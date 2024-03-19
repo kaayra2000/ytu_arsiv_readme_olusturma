@@ -95,6 +95,25 @@ def guncelle_ogrenci_gorusleri(data, sheets_url):
     # icerikKontrol.dosya_yaz()
 
 
+def yillaraGoreYildizSayisiDondur(yildizlar_yil_ders_grouped, ad):
+    # Hoca adına ve yıla göre gruplanmış veriden, belirtilen hoca için verileri filtrele
+    ders_filtr = yildizlar_yil_ders_grouped.xs(ad, level=DERS_SEC, drop_level=False)
+
+    # Filtrelenmiş veri üzerinde iterasyon yaparak her bir yıl için ders değerlendirmelerini topla
+    yildizlar_listesi = []
+    for yil, row in ders_filtr.iterrows():
+        yildizlar = {
+            KOLAYLIK_PUANI: int(row[DERSI_GECMEK_NE_KADAR_KOLAY] * YILDIZ_KATSAYISI),
+            GEREKLILIK_PUANI: int(
+                row[DERS_MESLEKI_ACIDAN_GEREKLI_MI] * YILDIZ_KATSAYISI
+            ),
+            YIL: yil[1],
+        }
+        yildizlar_listesi.append(yildizlar)
+
+    return yildizlar_listesi
+
+
 def guncelle_ders_yildizlari(data, sheets_url):
     try:
         # Veriyi indir ve DataFrame olarak oku
@@ -128,11 +147,21 @@ def guncelle_ders_yildizlari(data, sheets_url):
     ):
         custom_write_error("CSV dosyası hatalı, script durduruluyor.\n")
         exit(1)
-
+    yildizlar_df = yildizlar_df.dropna()
     # Sadece sayısal sütunları al ve ortalama hesapla
     yildizlar_numeric_columns = yildizlar_df.columns.drop(
         [ZAMAN_DAMGASI, DERS_SEC]
     )  # Sayısal olmayan sütunları çıkar
+
+    # Yorum tarihinden yılı çıkarıp yeni bir sütun oluştur
+    yildizlar_df[YIL] = pd.to_datetime(
+        yildizlar_df.iloc[:, 0], format="%d.%m.%Y %H:%M:%S"
+    ).dt.year
+
+    # bunun amacı yıllara göre ortalama yansıtabilmek
+    yildizlar_yil_ders_grouped = yildizlar_df.groupby([DERS_SEC, YIL])[
+        yildizlar_numeric_columns
+    ].mean()
     yildizlar_grouped = yildizlar_df.groupby(DERS_SEC)[yildizlar_numeric_columns].mean()
     # Hocaların aldığı oyların (yani kaç defa seçildiğinin) frekansını hesapla
     ders_oy_sayisi = yildizlar_df[DERS_SEC].value_counts()
@@ -154,12 +183,18 @@ def guncelle_ders_yildizlari(data, sheets_url):
         name = ders.get(AD)
         if name in yildizlar_grouped.index:
             ders[KOLAYLIK_PUANI] = int(
-                yildizlar_grouped.loc[name, DERSI_GECMEK_NE_KADAR_KOLAY] * 10
+                yildizlar_grouped.loc[name, DERSI_GECMEK_NE_KADAR_KOLAY]
+                * YILDIZ_KATSAYISI
             )
             ders[GEREKLILIK_PUANI] = int(
-                yildizlar_grouped.loc[name, DERS_MESLEKI_ACIDAN_GEREKLI_MI] * 10
+                yildizlar_grouped.loc[name, DERS_MESLEKI_ACIDAN_GEREKLI_MI]
+                * YILDIZ_KATSAYISI
             )
             ders[OY_SAYISI] = int(ders_oy_sayisi[name])
+        if name in yildizlar_yil_ders_grouped.index:
+            ders[YILLARA_GORE_YILDIZ_SAYILARI] = yillaraGoreYildizSayisiDondur(
+                yildizlar_yil_ders_grouped, ad=name
+            )
 
 
 # JSON dosyasını oku

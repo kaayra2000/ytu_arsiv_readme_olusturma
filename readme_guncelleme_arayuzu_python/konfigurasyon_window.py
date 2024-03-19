@@ -100,9 +100,16 @@ class KonfigurasyonDialog(QDialog):
         tam_yol = os.path.join(secilenYol, dosya_adi)
         if os.path.exists(tam_yol):
             # Kullanıcıya soru sor
-            yeni_ad = tam_yol.replace(".json", "_yedek.json")
+            # Dosya adını ve uzantısını ayır
+            dosya_adi, uzanti = os.path.splitext(tam_yol)
+
+            # Yeni ad oluştur (_yedek ekleyerek)
+            yeni_ad = f"{dosya_adi}_yedek{uzanti}"
+
+            # Dosyanın adını değiştir
             os.rename(tam_yol, yeni_ad)
             QMessageBox.information(
+                self,
                 f"Dizinde {dosya_adi} dosyası tespit edildi",
                 f"Bu dosyanın adı bilgilerinin kaynolmaması adına ihtiyaten {yeni_ad} olarak değiştirildi.",
             )
@@ -148,12 +155,11 @@ class KonfigurasyonDialog(QDialog):
                 dosya.write(goreceliYol)
 
             for jsonDosyasi in json_dosyalari:
+                self.dosya_kontrol_et_ve_degistir(secilenYol, jsonDosyasi)
                 if not self.dosyaKopyala(self.yol, jsonDosyasi, secilenYol):
                     QMessageBox.critical(
                         self, "Hata", f"{jsonDosyasi} dosyası kopyalanamadı"
                     )
-                else:
-                    self.dosya_kontrol_et_ve_degistir(secilenYol, jsonDosyasi)
             self.yol = secilenYol
             QMessageBox.information(
                 self,

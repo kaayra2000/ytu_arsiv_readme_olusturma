@@ -58,6 +58,14 @@ def guncelle_ogrenci_gorusleri(data, sheets_url):
         ders_adi = row[DERS_SEC]
         kisi = row[ISMIN_NASIL_GORUNSUN]
         yorum = metin_sansurle(row.get(DERS_HAKKINDAKI_YORUMUN, ""))
+        yorum_tarihi = pd.to_datetime(
+            row[0], format="%d.%m.%Y %H:%M:%S"
+        )  # tarih bilgisi
+        yorum_tarihi = {
+            YIL: yorum_tarihi.year,
+            AY: yorum_tarihi.month,
+            GUN: yorum_tarihi.day,
+        }
         # icerikKontrol = IcerikKontrol("ders")
         if not pd.isna(yorum):  # and icerikKontrol.pozitif_mi(yorum):
             # yorum = icerikKontrol.metin_on_isleme(yorum)
@@ -71,13 +79,18 @@ def guncelle_ogrenci_gorusleri(data, sheets_url):
                         if gorus[KISI].lower() == kisi.lower():
                             gorus[YORUM] = yorum
                             gorus[KISI] = kisi.lower().title()
+                            gorus[TARIH] = yorum_tarihi
                             gorus_var_mi = True
                             break
 
                     # Yeni yorum ekle
                     if not gorus_var_mi:
                         ders[OGRENCI_GORUSLERI].append(
-                            {KISI: kisi.lower().title(), YORUM: yorum}
+                            {
+                                KISI: kisi.lower().title(),
+                                YORUM: yorum,
+                                TARIH: yorum_tarihi,
+                            }
                         )
     # icerikKontrol.dosya_yaz()
 

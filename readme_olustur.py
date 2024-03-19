@@ -45,18 +45,21 @@ GERI_BILDIRIM_KISMI = f""" ## 🗣️ Geri Bildirimde Bulunun
 """
 
 
-def derseYildizYaz(f, ders, girinti=""):
+def derseYildizYaz(f, kolaylik_puani, gereklilik_puani, girinti, yil=""):
+    f.write(
+        f"{girinti}  - ✅ {yil}Dersi Kolay Geçer Miyim: {puanlari_yildiza_cevir(kolaylik_puani)}\n"
+    )
+    f.write(
+        f"{girinti}  - 🎯 {yil}Ders Mesleki Açıdan Gerekli Mi: {puanlari_yildiza_cevir(gereklilik_puani)}\n"
+    )
+
+
+def dersinYildizBasliginiYaz(f, ders, girinti=""):
     f.write(f"{girinti}- ⭐ **Yıldız Sayıları:**\n")
     if OY_SAYISI in ders:
         kolaylik_puani = ders.get(KOLAYLIK_PUANI, 1)
         gereklilik_puani = ders.get(GEREKLILIK_PUANI, 1)
-        f.write(
-            f"{girinti}  - ✅ Dersi Kolay Geçer Miyim: {puanlari_yildiza_cevir(kolaylik_puani)}\n"
-        )
-        f.write(
-            f"{girinti}  - 🎯 Ders Mesleki Açıdan Gerekli Mi: {puanlari_yildiza_cevir(gereklilik_puani)}\n"
-        )
-
+        derseYildizYaz(f, kolaylik_puani, gereklilik_puani, girinti)
         f.write(
             f"    - ℹ️ Yıldızlar {ders[OY_SAYISI]} oy üzerinden hesaplanmıştır. Siz de [linkten]({DERS_OYLAMA_LINKI}) anonim şekilde oylamaya katılabilirsiniz.\n"
         )
@@ -64,6 +67,19 @@ def derseYildizYaz(f, ders, girinti=""):
         f.write(
             f"    - ℹ️ Henüz yıldız veren yok. Siz de [linkten]({DERS_OYLAMA_LINKI}) anonim şekilde oylamaya katılabilirsiniz.\n"
         )
+        return
+    ek_girinti = "  "
+    if YILLARA_GORE_YILDIZ_SAYILARI in ders:
+        for yildiz_bilgileri in ders[YILLARA_GORE_YILDIZ_SAYILARI]:
+            yil = yildiz_bilgileri.get(YIL, "bilinmiyor")
+            f.write(f"{girinti + ek_girinti}- 📅 *{yil} yılı için yıldız bilgileri*\n")
+            derseYildizYaz(
+                f,
+                yildiz_bilgileri.get(KOLAYLIK_PUANI, 0),
+                yildiz_bilgileri.get(GEREKLILIK_PUANI, 0),
+                girinti + ek_girinti,
+                f"{yil} Yılında ",
+            )
 
 
 # Klasörler için benzerlik skoru hesaplayan fonksiyon
@@ -419,7 +435,7 @@ def dersleri_readme_ye_ekle(dersler):
                     f.write(
                         f"    - ℹ️ Siz de [linkten]({DERS_YORUMLAMA_LINKI}) anonim şekilde görüşlerinizi belirtebilirsiniz.\n"
                     )
-                derseYildizYaz(f, ders, girinti="  ")
+                dersinYildizBasliginiYaz(f, ders, girinti="  ")
 
                 if DERSI_VEREN_HOCALAR in ders and len(ders[DERSI_VEREN_HOCALAR]) > 0:
                     f.write("  - 👨‍🏫 👩‍🏫 **Dersi Yürüten Akademisyenler:**\n")
@@ -694,7 +710,7 @@ def ders_klasorune_readme_olustur(ders, dosya_yolu, klasor_sonradan_olustu=False
             f.write(f"- 💬 **Öğrenci Görüşleri:**\n")
             for gorus in ders[OGRENCI_GORUSLERI]:
                 f.write(f"  - 👤 **_{gorus[KISI].strip()}_**: {gorus[YORUM]}\n")
-        derseYildizYaz(f, ders)
+        dersinYildizBasliginiYaz(f, ders)
         if DERSE_DAIR_ONERILER in ders:
             # Derse dair öneriler
             f.write("## 📝 Derse Dair Öneriler\n\n")
@@ -842,7 +858,7 @@ def ders_bilgilerini_readme_ile_birlestir(
                             f.write(
                                 f"  - 👤 **_{gorus[KISI].strip()}_**: {gorus[YORUM]}\n"
                             )  # Kişi emoji, öğrenciyi temsil eder
-                    derseYildizYaz(f, ders)
+                    dersinYildizBasliginiYaz(f, ders)
 
                     if DERSE_DAIR_ONERILER in ders:
                         f.write(

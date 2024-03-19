@@ -61,11 +61,11 @@ def dersinYildizBasliginiYaz(f, ders, girinti=""):
         gereklilik_puani = ders.get(GEREKLILIK_PUANI, 1)
         derseYildizYaz(f, kolaylik_puani, gereklilik_puani, girinti)
         f.write(
-            f"    - ℹ️ Yıldızlar {ders[OY_SAYISI]} oy üzerinden hesaplanmıştır. Siz de [linkten]({DERS_OYLAMA_LINKI}) anonim şekilde oylamaya katılabilirsiniz.\n"
+            f"{girinti}    - ℹ️ Yıldızlar {ders[OY_SAYISI]} oy üzerinden hesaplanmıştır. Siz de [linkten]({DERS_OYLAMA_LINKI}) anonim şekilde oylamaya katılabilirsiniz.\n"
         )
     else:
         f.write(
-            f"    - ℹ️ Henüz yıldız veren yok. Siz de [linkten]({DERS_OYLAMA_LINKI}) anonim şekilde oylamaya katılabilirsiniz.\n"
+            f"{girinti}    - ℹ️ Henüz yıldız veren yok. Siz de [linkten]({DERS_OYLAMA_LINKI}) anonim şekilde oylamaya katılabilirsiniz.\n"
         )
         return
     ek_girinti = "  "

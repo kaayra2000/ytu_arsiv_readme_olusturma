@@ -4,7 +4,7 @@ import json
 import os
 from PyQt6.QtCore import QCoreApplication
 import shutil
-from degiskenler import DOKUMANLAR_REPO_YOLU_ANAHTARI ,KONFIGURASYON_JSON_PATH, JSON_DOSYALARI_DEPOSU_DOSYA_YOLU, EKLE_BUTONU_STILI, BIR_UST_DIZIN, MAAS_ISTATISTIKLERI_TXT_ADI
+from degiskenler import KONFIGURASYON_JSON_NAME,DOKUMANLAR_REPO_YOLU_ANAHTARI ,KONFIGURASYON_JSON_PATH, JSON_DOSYALARI_DEPOSU_DOSYA_YOLU, EKLE_BUTONU_STILI, BIR_UST_DIZIN, MAAS_ISTATISTIKLERI_TXT_ADI
 class KonfigurasyonDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -66,6 +66,13 @@ class KonfigurasyonDialog(QDialog):
         self.klasorAc(self.dokumanPushButton, self.dokumanPushButton.toolTip())
     def jsonDepoSec(self):
         self.klasorAc(self.jsonDepoButton, self.jsonDepoButton.toolTip())
+    def dosya_kontrol_et_ve_degistir(self, secilenYol, dosya_adi):
+        tam_yol = os.path.join(secilenYol, dosya_adi)
+        if os.path.exists(tam_yol):
+            # Kullanıcıya soru sor
+                yeni_ad = tam_yol.replace(".json", "_yedek.json")
+                os.rename(tam_yol, yeni_ad)
+                QMessageBox.information(f"Dizinde {dosya_adi} dosyası tespit edildi",f"Bu dosyanın adı bilgilerinin kaynolmaması adına ihtiyaten {yeni_ad} olarak değiştirildi.")
     def depoDosyasiKaydet(self):
         secilenYol = self.jsonDepoButton.toolTip()
         if secilenYol == self.yol:
@@ -100,6 +107,8 @@ class KonfigurasyonDialog(QDialog):
             for jsonDosyasi in json_dosyalari:
                 if not self.dosyaKopyala(self.yol, jsonDosyasi, secilenYol):
                     QMessageBox.critical(self, "Hata", f"{jsonDosyasi} dosyası kopyalanamadı")
+                else:
+                    self.dosya_kontrol_et_ve_degistir(secilenYol, jsonDosyasi)
             self.yol = secilenYol            
             QMessageBox.information(self, "Başarılı", "Değişiklikler başarıyla kaydedildi. Uygulamayı yeniden başlatın...")
             QCoreApplication.instance().quit()

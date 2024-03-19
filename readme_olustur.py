@@ -50,7 +50,15 @@ def derseOgrenciGorusuBasliginiYaz(f, ders, girinti=""):
     if len(gorusler) > 0:
         f.write(f"{girinti}- 💭 **Öğrenci Görüşleri:**\n")
         for gorus in gorusler:
-            f.write(f"{girinti}  - 👤 **_{gorus[KISI].strip()}_**: {gorus[YORUM]}\n")
+            gorus_tarihi = ""
+            if TARIH in gorus:
+                ay = gorus.get(TARIH, {}).get(AY)
+                ay = f"{ay}" if ay > 9 else f"0{ay}"
+                gorus_tarihi = f"{ay}.{gorus.get(TARIH,{}).get(YIL)}"
+                gorus_tarihi = f"ℹ️ Yorum **{gorus_tarihi}** tarihinde yapılmıştır."
+            f.write(
+                f"{girinti}  - 👤 **_{gorus[KISI].strip()}_**: {gorus[YORUM]} {gorus_tarihi}\n"
+            )
         f.write(
             f"{girinti}    - ℹ️ Siz de [linkten]({DERS_YORUMLAMA_LINKI}) anonim şekilde görüşlerinizi belirtebilirsiniz.\n"
         )

@@ -45,6 +45,17 @@ GERI_BILDIRIM_KISMI = f""" ## 🗣️ Geri Bildirimde Bulunun
 """
 
 
+def derseOgrenciGorusuBasliginiYaz(f, ders, girinti=""):
+    gorusler = ders.get(OGRENCI_GORUSLERI, [])
+    if len(gorusler) > 0:
+        f.write(f"{girinti}- 💭 **Öğrenci Görüşleri:**\n")
+        for gorus in gorusler:
+            f.write(f"{girinti}  - 👤 **_{gorus[KISI].strip()}_**: {gorus[YORUM]}\n")
+        f.write(
+            f"{girinti}    - ℹ️ Siz de [linkten]({DERS_YORUMLAMA_LINKI}) anonim şekilde görüşlerinizi belirtebilirsiniz.\n"
+        )
+
+
 def derseYildizYaz(f, kolaylik_puani, gereklilik_puani, girinti, yil=""):
     f.write(
         f"{girinti}  - ✅ {yil}Dersi Kolay Geçer Miyim: {puanlari_yildiza_cevir(kolaylik_puani)}\n"
@@ -426,15 +437,7 @@ def dersleri_readme_ye_ekle(dersler):
                 )
                 f.write(f"#### 📘 {ders[AD]} {populer_isaret}{populer_bilgi}\n")
                 f.write(f"  - 🏷️ **Ders Tipi:** {ders[TIP]}\n")
-                if OGRENCI_GORUSLERI in ders and ders[OGRENCI_GORUSLERI]:
-                    f.write(f"  - 💭 **Öğrenci Görüşleri:**\n")
-                    for gorus in ders[OGRENCI_GORUSLERI]:
-                        f.write(
-                            f"    - 👤 **_{gorus[KISI].strip()}_**: {gorus[YORUM]}\n"
-                        )
-                    f.write(
-                        f"    - ℹ️ Siz de [linkten]({DERS_YORUMLAMA_LINKI}) anonim şekilde görüşlerinizi belirtebilirsiniz.\n"
-                    )
+                derseOgrenciGorusuBasliginiYaz(f, ders, girinti="  ")
                 dersinYildizBasliginiYaz(f, ders, girinti="  ")
 
                 if DERSI_VEREN_HOCALAR in ders and len(ders[DERSI_VEREN_HOCALAR]) > 0:
@@ -706,10 +709,7 @@ def ders_klasorune_readme_olustur(ders, dosya_yolu, klasor_sonradan_olustu=False
             f.write(f"- 📅 **Yıl:** {ders[YIL]}\n")
             f.write(f"- 📆 **Dönem:** {ders[DONEM]}\n")
         f.write(f"- 🏫 **Ders Tipi:** {ders[TIP]}\n")
-        if OGRENCI_GORUSLERI in ders and ders[OGRENCI_GORUSLERI]:
-            f.write(f"- 💬 **Öğrenci Görüşleri:**\n")
-            for gorus in ders[OGRENCI_GORUSLERI]:
-                f.write(f"  - 👤 **_{gorus[KISI].strip()}_**: {gorus[YORUM]}\n")
+        derseOgrenciGorusuBasliginiYaz(f, ders)
         dersinYildizBasliginiYaz(f, ders)
         if DERSE_DAIR_ONERILER in ders:
             # Derse dair öneriler
@@ -850,14 +850,7 @@ def ders_bilgilerini_readme_ile_birlestir(
                     f.write(f"- 📅 **Yıl:** {ders[YIL]}\n")
                     f.write(f"- 📆 **Dönem:** {ders[DONEM]}\n")
                     f.write(f"- 🏫 **Ders Tipi:** {ders[TIP]}\n")
-                    if OGRENCI_GORUSLERI in ders and ders[OGRENCI_GORUSLERI]:
-                        f.write(
-                            f"- 💬 **Öğrenci Görüşleri:**\n"
-                        )  # Konuşma balonu emoji, öğrenci görüşlerini temsil eder
-                        for gorus in ders[OGRENCI_GORUSLERI]:
-                            f.write(
-                                f"  - 👤 **_{gorus[KISI].strip()}_**: {gorus[YORUM]}\n"
-                            )  # Kişi emoji, öğrenciyi temsil eder
+                    derseOgrenciGorusuBasliginiYaz(f, ders)
                     dersinYildizBasliginiYaz(f, ders)
 
                     if DERSE_DAIR_ONERILER in ders:

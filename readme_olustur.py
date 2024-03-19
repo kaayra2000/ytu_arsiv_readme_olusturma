@@ -45,19 +45,35 @@ GERI_BILDIRIM_KISMI = f""" ## 🗣️ Geri Bildirimde Bulunun
 """
 
 
+def gorustenTarihGetir(gorus):
+    gorus_tarihi = ""
+    if TARIH in gorus:
+        ay = gorus.get(TARIH, {}).get(AY)
+        ay = f"{ay}" if ay > 9 else f"0{ay}"
+        gorus_tarihi = f"{ay}.{gorus.get(TARIH,{}).get(YIL)}"
+        gorus_tarihi = f"ℹ️ Yorum **{gorus_tarihi}** tarihinde yapılmıştır."
+    return gorus_tarihi
+
+
+def hocayaOgrenciGorusuBasliginiYaz(f, hoca, girinti=""):
+    gorusler = hoca.get(OGRENCI_GORUSLERI, [])
+    if len(gorusler) > 0:
+        for gorus in gorusler:
+            f.write(
+                f"  - 👤 **_{gorus[KISI].strip()}_**: {gorus[YORUM]} {gorustenTarihGetir(gorus)}\n"
+            )
+    f.write(
+        f"  - ℹ️ Siz de [linkten]({HOCA_YORULMALA_LINKI}) anonim şekilde görüşlerinizi belirtebilirsiniz.\n"
+    )
+
+
 def derseOgrenciGorusuBasliginiYaz(f, ders, girinti=""):
     gorusler = ders.get(OGRENCI_GORUSLERI, [])
     if len(gorusler) > 0:
         f.write(f"{girinti}- 💭 **Öğrenci Görüşleri:**\n")
         for gorus in gorusler:
-            gorus_tarihi = ""
-            if TARIH in gorus:
-                ay = gorus.get(TARIH, {}).get(AY)
-                ay = f"{ay}" if ay > 9 else f"0{ay}"
-                gorus_tarihi = f"{ay}.{gorus.get(TARIH,{}).get(YIL)}"
-                gorus_tarihi = f"ℹ️ Yorum **{gorus_tarihi}** tarihinde yapılmıştır."
             f.write(
-                f"{girinti}  - 👤 **_{gorus[KISI].strip()}_**: {gorus[YORUM]} {gorus_tarihi}\n"
+                f"{girinti}  - 👤 **_{gorus[KISI].strip()}_**: {gorus[YORUM]} {gorustenTarihGetir(gorus)}\n"
             )
         f.write(
             f"{girinti}    - ℹ️ Siz de [linkten]({DERS_YORUMLAMA_LINKI}) anonim şekilde görüşlerinizi belirtebilirsiniz.\n"
@@ -292,16 +308,7 @@ def hocalari_readme_ye_ekle(bilgiler):
             f.write(f"- 🚪 **Ofis:** {hoca[OFIS]}\n")
             f.write(f"- 🔗 **Araştırma Sayfası:** [{hoca[LINK]}]({hoca[LINK]})\n")
             f.write(f"- 💬 **Öğrenci Görüşleri:**\n")
-            if (
-                OGRENCI_GORUSLERI in hoca
-                and isinstance(hoca[OGRENCI_GORUSLERI], list)
-                and len(hoca[OGRENCI_GORUSLERI]) > 0
-            ):
-                for gorus in hoca[OGRENCI_GORUSLERI]:
-                    f.write(f"  - 👤 **_{gorus[KISI].strip()}_**: {gorus[YORUM]}\n")
-            f.write(
-                f"  - ℹ️ Siz de [linkten]({HOCA_YORULMALA_LINKI}) anonim şekilde görüşlerinizi belirtebilirsiniz.\n"
-            )
+            hocayaOgrenciGorusuBasliginiYaz(f, hoca)
             f.write("- 📚 **Verdiği Dersler:**\n")
             if (
                 DERSLER in hoca

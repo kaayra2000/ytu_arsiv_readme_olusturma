@@ -89,6 +89,58 @@ def derseYildizYaz(f, kolaylik_puani, gereklilik_puani, girinti, yil=""):
     )
 
 
+def hocayaYildizYaz(
+    f, anlatim_puani, kolaylik_puani, ogretme_puani, eglence_puani, girinti, yil=""
+):
+    f.write(
+        f"{girinti}  - {yil}🎭 Dersi Zevkli Anlatır Mı:\t{puanlari_yildiza_cevir(anlatim_puani)}\n"
+    )
+    f.write(
+        f"{girinti}  - {yil}🛣️ Dersi Kolay Geçer Miyim:\t{puanlari_yildiza_cevir(kolaylik_puani)}\n"
+    )
+    f.write(
+        f"{girinti}  - {yil}🧠 Dersi Öğrenir Miyim:\t{puanlari_yildiza_cevir(ogretme_puani)}\n"
+    )
+    f.write(
+        f"{girinti}  - {yil}🎉 Derste Eğlenir Miyim:\t{puanlari_yildiza_cevir(eglence_puani)}\n"
+    )
+
+
+def hocaninYildizBasliginiYaz(f, hoca, girinti=""):
+    f.write(f"{girinti}- ⭐ **Yıldız Sayıları:**\n")
+    if OY_SAYISI in hoca and isinstance(hoca[OY_SAYISI], int) and hoca[OY_SAYISI] > 0:
+        hocayaYildizYaz(
+            f,
+            hoca.get(ANLATIM_PUANI, 0),
+            hoca.get(KOLAYLIK_PUANI, 0),
+            hoca.get(OGRETME_PUNAI, 0),
+            hoca.get(EGLENCE_PUANI, 0),
+            girinti,
+        )
+        f.write(
+            f"{girinti}    - ℹ️ Yıldızlar {hoca[OY_SAYISI]} oy üzerinden hesaplanmıştır. Siz de [linkten]({HOCA_OYLAMA_LINKI}) anonim şekilde oylamaya katılabilirsiniz.\n"
+        )
+    else:
+        f.write(
+            f"{girinti}    - ℹ️ Henüz yıldız veren yok. Siz de [linkten]({HOCA_OYLAMA_LINKI}) anonim şekilde oylamaya katılabilirsiniz.\n"
+        )
+        return
+    ek_girinti = "  "
+    if YILLARA_GORE_YILDIZ_SAYILARI in hoca:
+        for yildiz_bilgileri in hoca[YILLARA_GORE_YILDIZ_SAYILARI]:
+            yil = yildiz_bilgileri.get(YIL, "bilinmiyor")
+            f.write(f"{girinti + ek_girinti}- 📅 *{yil} yılı için yıldız bilgileri*\n")
+            hocayaYildizYaz(
+                f,
+                yildiz_bilgileri.get(ANLATIM_PUANI, 0),
+                yildiz_bilgileri.get(KOLAYLIK_PUANI, 0),
+                yildiz_bilgileri.get(OGRETME_PUNAI, 0),
+                yildiz_bilgileri.get(EGLENCE_PUANI, 0),
+                girinti + ek_girinti,
+                f"{yil} Yılında ",
+            )
+
+
 def dersinYildizBasliginiYaz(f, ders, girinti=""):
     f.write(f"{girinti}- ⭐ **Yıldız Sayıları:**\n")
     if OY_SAYISI in ders:
@@ -333,36 +385,7 @@ def hocalari_readme_ye_ekle(bilgiler):
                         f.write(f"  - 📖 [{ders}]{baslik_linki_olustur(ders_id)}\n")
             else:
                 f.write("  - 📖 Ders bilgileri bulunamadı.\n")
-            f.write(f"- ⭐ **Yıldız Sayıları:**\n")
-            if (
-                ANLATIM_PUANI in hoca
-                and isinstance(hoca[ANLATIM_PUANI], int)
-                and hoca[ANLATIM_PUANI] > 0
-            ):
-                f.write(
-                    f"  - 🎭 Dersi Zevkli Anlatır Mı:\t{puanlari_yildiza_cevir(hoca[ANLATIM_PUANI])}\n"
-                )
-                f.write(
-                    f"  - 🛣️ Dersi Kolay Geçer Miyim:\t{puanlari_yildiza_cevir(hoca[KOLAYLIK_PUANI])}\n"
-                )
-                f.write(
-                    f"  - 🧠 Dersi Öğrenir Miyim:\t{puanlari_yildiza_cevir(hoca[OGRETME_PUNAI])}\n"
-                )
-                f.write(
-                    f"  - 🎉 Derste Eğlenir Miyim:\t{puanlari_yildiza_cevir(hoca[EGLENCE_PUANI])}\n"
-                )
-            if (
-                OY_SAYISI in hoca
-                and isinstance(hoca[OY_SAYISI], int)
-                and hoca[OY_SAYISI] > 0
-            ):
-                f.write(
-                    f"  - ℹ️ Yıldızlar {hoca[OY_SAYISI]} oy üzerinden hesaplanmıştır. Siz de [linkten]({HOCA_OYLAMA_LINKI}) anonim şekilde oylamaya katılabilirsiniz.\n"
-                )
-            else:
-                f.write(
-                    f"  - ℹ️ Henüz yıldız veren yok. Siz de [linkten]({HOCA_OYLAMA_LINKI}) anonim şekilde oylamaya katılabilirsiniz.\n"
-                )
+            hocaninYildizBasliginiYaz(f, hoca)
             if hoca.get(HOCA_AKTIF_GOREVDE_MI, True) == False:
                 f.write(f"- ℹ️ {VARSAYILAN_HOCA_AKTIF_GOREVDE_DEGIL_MESAJI}.\n")
         f.write("</details>\n\n")

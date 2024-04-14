@@ -567,13 +567,17 @@ def readme_ye_repo_kullanimi_ekle(repo_kullanimi_bilgileri):
         f.write(
             f"\n\n\n## 🛠 {repo_kullanimi_bilgileri[BASLIK]}\n\n"
         )  # Araç kutusu emojisi
-        f.write(f"### ⚙️ {repo_kullanimi_bilgileri[ACIKLAMA]}\n")
+        f.write(f"### ⚙️ {repo_kullanimi_bilgileri[ACIKLAMA]}:\n")
         for aciklama in repo_kullanimi_bilgileri[ACIKLAMALAR]:
             f.write(f"- 📋 {aciklama}\n")  # Not defteri emojisi
-        f.write(f"\n\n### 📝 {repo_kullanimi_bilgileri[TALIMAT]}\n")  # Yazma emojisi
+        f.write(f"\n\n### 📝 {repo_kullanimi_bilgileri[TALIMAT]}:\n")  # Yazma emojisi
         for talimat in repo_kullanimi_bilgileri[TALIMATLAR]:
             f.write(f"- 👉 {talimat}\n")  # İşaret parmağı emojisi
-        f.write(f"\n\n### 🔍 {repo_kullanimi_bilgileri[KAVRAM]}\n")  # Büyüteç emojisi
+        f.write("</details>\n\n")
+        f.write(
+            f"<details>\n<summary><b>🔍 {repo_kullanimi_bilgileri[KAVRAM]}</b></summary>\n\n"
+        )
+        f.write(f"\n\n## 🔍 {repo_kullanimi_bilgileri[KAVRAM]}\n")  # Büyüteç emojisi
         for kavram in sorted(
             repo_kullanimi_bilgileri[KAVRAMLAR],
             key=lambda x: unicodedata.normalize("NFKD", x[KAVRAM].lower()),

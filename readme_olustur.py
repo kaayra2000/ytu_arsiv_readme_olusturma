@@ -529,9 +529,7 @@ def readme_ye_giris_ekle(giris_bilgileri):
         )  # Kitap emoji başlığı temsil eder
         f.write(f"{giris_bilgileri['aciklama']}\n\n")
         f.write(GERI_BILDIRIM_KISMI)
-        f.write(
-            '<p align="center">\n<img src="https://komarev.com/ghpvc/?username=baselkelziye&label=Görüntülenme+Sayısı" width="400" height="auto"/>\n</p>\n\n'
-        )
+        f.write(TIKLANMA_SAYISI)
         f.write("<details>\n<summary><b>🗂 İçindekiler</b></summary>\n\n")
         f.write("## 🗂 İçindekiler\n\n")
         for item in giris_bilgileri["icindekiler"]:

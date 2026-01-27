@@ -1,4 +1,3 @@
-from yazarin_notlari_duzenle_window import YazarinNotlariWindow
 from degiskenler import *
 from PyQt6.QtWidgets import (
     QLabel,
@@ -9,6 +8,9 @@ from PyQt6.QtWidgets import (
     QDialog,
     QVBoxLayout,
     QSizePolicy,
+    QInputDialog,
+    QWidget,
+    QScrollArea,
 )
 from coklu_satir_girdi_dialog import SatirAtlayanInputDialog
 from metin_islemleri import kisaltMetin
@@ -17,21 +19,52 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIcon, QGuiApplication
 import re
 from helpers.yukari_asagi_dugme_dizilimi import YukariAsagiDugmeDizilimi
+from close_event import closeEventHandler
 
 
-class GirisEkleGuncelleWindow(YazarinNotlariWindow):
+class GirisEkleGuncelleWindow(QDialog):
     def __init__(self, parent):
         super().__init__(parent)
+        self.setModal(True)
+        self.is_programmatic_close = False
+        self.data = self.jsonDosyasiniYukle()
+        if self.ilklendir():
+            self.jsonKaydet()
+        self.initUI()
+        if os.path.exists(SELCUKLU_ICO_PATH):
+            self.setWindowIcon(QIcon(SELCUKLU_ICO_PATH))
 
     def initUI(self):
-        super().initUI()
+        self.setWindowTitle("Giriş Güncelleme")
+        self.setMinimumSize(
+            500, 200
+        )  # Pencerenin en küçük olabileceği boyutu ayarlayın
+        self.mainLayout = QVBoxLayout(self)  # Ana layout
+        # Filtreleme için QLineEdit oluştur
+        self.clearFiltersButton = QPushButton("Filtreleri Temizle", self)
+        self.clearFiltersButton.clicked.connect(
+            lambda: self.clearFilters(is_clicked=True)
+        )
+        self.clearFiltersButton.setStyleSheet(TEMIZLE_BUTONU_STILI)  # Mavi arka plan
+        self.clearFiltersButton.hide()  # Başlangıçta temizle butonunu gizle
+        self.mainLayout.addWidget(self.clearFiltersButton)
+        # Başlık etiketi
+        self.baslikLabel = QLabel("Başlık")
+        self.baslikLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.mainLayout.addWidget(self.baslikLabel)
+        # Başlık butonu
         baslik = self.data.get(BASLIK, VARSAYILAN_GIRIS_BASLIK)
-        aciklama = self.data.get(ACIKLAMA, VARSAYILAN_GIRIS_ACIKLAMA)
-        self.baslikBtn.setText(kisaltMetin(baslik))
+        self.baslikBtn = QPushButton(kisaltMetin(baslik), self)
+        self.baslikBtn.setStyleSheet(BASLIK_BUTON_STILI)
+        self.baslikBtn.clicked.connect(self.baslikDuzenle)
         self.baslikBtn.setToolTip(baslik)
+        self.mainLayout.addWidget(self.baslikBtn)
+
+        # Açıklama etiketi ve butonu
+        aciklama = self.data.get(ACIKLAMA, VARSAYILAN_GIRIS_ACIKLAMA)
         self.aciklama_label = QLabel("Açıklama", self)
         self.aciklama_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.mainLayout.insertWidget(3, self.aciklama_label)
+        self.mainLayout.addWidget(self.aciklama_label)
         self.aciklama_duzenle_btn = QPushButton(kisaltMetin(aciklama), self)
         self.aciklama_duzenle_btn.setStyleSheet(ACIKLAMA_BUTON_STILI)
         self.aciklama_duzenle_btn.setToolTip(
@@ -40,11 +73,40 @@ class GirisEkleGuncelleWindow(YazarinNotlariWindow):
         self.aciklama_duzenle_btn.clicked.connect(
             lambda: self.aciklamaDuzenle(ACIKLAMA)
         )
-        self.mainLayout.insertWidget(4, self.aciklama_duzenle_btn)
-        self.ekleBtn.setText("İçindekiler Ekle")
-        self.setWindowTitle("Giriş Güncelleme")
-        if os.path.exists(SELCUKLU_ICO_PATH):
-            self.setWindowIcon(QIcon(SELCUKLU_ICO_PATH))
+        self.mainLayout.addWidget(self.aciklama_duzenle_btn)
+
+        # Not ekleme butonu
+        self.ekleBtn = QPushButton("İçindekiler Ekle", self)
+        self.ekleBtn.setStyleSheet(EKLE_BUTONU_STILI)  # Yeşil arka plan, beyaz yazı
+        self.ekleBtn.clicked.connect(self.notEkle)
+        self.mainLayout.addWidget(self.ekleBtn)  # Ana layout'a ekle butonunu ekle
+
+        # Not sayısını gösteren etiket
+        self.notSayisiLabel = QLabel("Toplam 0 içindekiler")
+        self.notSayisiLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.mainLayout.addWidget(self.notSayisiLabel)
+
+        # Kaydırılabilir alan oluştur
+        self.scrollArea = QScrollArea(self)  # ScrollArea oluştur
+        self.scrollArea.setWidgetResizable(True)
+
+        # Notları gösterecek iç içe geçmiş widget'lar oluştur
+        self.scrollWidget = QWidget()
+        self.notlarLayout = QVBoxLayout(self.scrollWidget)  # Notlar için QVBoxLayout
+
+        self.scrollArea.setWidget(self.scrollWidget)  # ScrollArea'ya widget ekle
+        self.mainLayout.addWidget(self.scrollArea)  # Ana layout'a ScrollArea ekle
+
+        self.notlariYukle()
+
+    def keyPressEvent(self, event):
+        if (
+            event.key() == Qt.Key.Key_F
+            and event.modifiers() & Qt.KeyboardModifier.ControlModifier
+        ):
+            text, ok = QInputDialog.getText(self, "Arama", "Aranacak kelime:")
+            if ok:
+                self.searchNotes(text)
 
     def ilklendir(self):
         ilklendirildi = False
@@ -286,6 +348,7 @@ class IcindekilerDuzenleWindow(QDialog):
         self.data = data
         self.key = key
         self.json_path = json_path
+        self.is_programmatic_close = False
         eslesme = re.search(capa_deseni, metin)
         self.capa = None
         self.baslik = None

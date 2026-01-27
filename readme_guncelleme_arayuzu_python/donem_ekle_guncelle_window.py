@@ -1,4 +1,3 @@
-from repo_kullanimi_window import TalimatDialog
 from PyQt6.QtWidgets import (
     QPushButton,
     QHBoxLayout,
@@ -18,15 +17,52 @@ from PyQt6.QtGui import QIcon
 import json
 
 
-class DonemEkleGuncelleWindow(TalimatDialog):
+class DonemEkleGuncelleWindow(QDialog):
     def __init__(self, parent=None):
-        super().__init__(parent, json_dosyasi=DONEMLER_JSON_PATH)
+        super().__init__(parent)
+        self.json_dosyasi = DONEMLER_JSON_PATH
+        self.repo_data = self.jsonVeriOku()
+        self.setModal(True)
+        self.jsonKontrol()
+        self.initUI()
         self.setWindowTitle("Dönem Ekle/Güncelle")
-        self.ekleBtn.clicked.disconnect()
-        self.ekleBtn.setText("Dönem Ekle")
-        self.ekleBtn.clicked.connect(self.donemEkle)
         if os.path.exists(SELCUKLU_ICO_PATH):
             self.setWindowIcon(QIcon(SELCUKLU_ICO_PATH))
+
+    def initUI(self):
+        self.layout = QVBoxLayout(self)
+        self.clearFiltersButton = QPushButton("Filtreleri Temizle", self)
+        self.clearFiltersButton.clicked.connect(
+            lambda: self.clearFilters(is_clicked=True)
+        )
+        self.clearFiltersButton.setStyleSheet(TEMIZLE_BUTONU_STILI)
+        self.clearFiltersButton.hide()
+        self.layout.addWidget(self.clearFiltersButton)
+        self.talimatSayisiLabel = QLabel(self)
+        self.talimatSayisiLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.layout.addWidget(self.talimatSayisiLabel)
+
+        # Kaydırılabilir alan oluştur
+        self.scrollArea = QScrollArea(self)
+        self.scrollAreaWidgetContents = QWidget()
+        self.scrollArea.setWidgetResizable(True)
+        self.scrollLayout = QVBoxLayout(self.scrollAreaWidgetContents)
+        self.scrollArea.setWidget(self.scrollAreaWidgetContents)
+        self.layout.addWidget(self.scrollArea)
+        self.scrollArea.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+
+        # ScrollArea için minimum boyutu belirle
+        self.scrollArea.setMinimumSize(580, 300)
+
+        self.yenile()
+
+        # Ekle butonunu ekle
+        self.ekleBtn = QPushButton("Dönem Ekle", self)
+        self.ekleBtn.setStyleSheet(EKLE_BUTONU_STILI)
+        self.ekleBtn.clicked.connect(self.donemEkle)
+        self.layout.addWidget(self.ekleBtn)
 
     def talimatListele(self):
         # Mevcut dönemleri temizle
@@ -50,6 +86,26 @@ class DonemEkleGuncelleWindow(TalimatDialog):
 
             self.scrollLayout.addLayout(donemLayout)
 
+    def temizle(self):
+        while self.scrollLayout.count():
+            layoutItem = self.scrollLayout.takeAt(0)
+            if layoutItem.widget():
+                layoutItem.widget().deleteLater()
+            elif layoutItem.layout():
+                self._clearLayout(layoutItem.layout())
+
+    def _clearLayout(self, layout):
+        while layout.count():
+            item = layout.takeAt(0)
+            widget = item.widget()
+            if widget:
+                widget.deleteLater()
+            else:
+                self._clearLayout(item.layout())
+
+    def yenile(self):
+        self.talimatListele()
+
     def jsonKontrol(self):
         if DONEMLER not in self.repo_data:
             self.repo_data[DONEMLER] = []
@@ -61,6 +117,11 @@ class DonemEkleGuncelleWindow(TalimatDialog):
                 return json.load(file)
         except Exception as e:
             return {DONEMLER: []}
+
+    def jsonGuncelle(self):
+        with open(self.json_dosyasi, "w", encoding="utf-8") as file:
+            json.dump(self.repo_data, file, indent=4, ensure_ascii=False)
+        self.yenile()
 
     def talimatSil(self, index):
         emin_mi = QMessageBox.question(
@@ -143,7 +204,7 @@ class DonemEkleGuncelleWindow(TalimatDialog):
             event.key() == Qt.Key.Key_F
             and event.modifiers() & Qt.KeyboardModifier.ControlModifier
         ):
-            text, ok = QInputDialog.getText(self, "Arama", "Aranacak talimat:")
+            text, ok = QInputDialog.getText(self, "Arama", "Aranacak dönem:")
             if ok:
                 self.searchDonem(text)
 

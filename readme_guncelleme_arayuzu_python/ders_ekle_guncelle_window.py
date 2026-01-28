@@ -23,7 +23,7 @@ from degiskenler import *
 from metin_islemleri import kisaltMetin
 from close_event import closeEventHandler
 from coklu_satir_girdi_dialog import SatirAtlayanInputDialog
-from screen_utils import calculate_minimum_size
+from screen_utils import apply_minimum_size
 
 # Hoca adlarını ve kısaltmalarını hazırla
 def hoca_sirala(hoca):
@@ -49,8 +49,7 @@ class DersEkleGuncelleWindow(QDialog):
 
     def initUI(self):
         self.setWindowTitle("Ders Ekle/Güncelle")
-        w, h = calculate_minimum_size(700, 200)
-        self.setMinimumSize(w, h)  # Pencerenin en küçük olabileceği boyutu ayarlayın
+        apply_minimum_size(self, 800, 600)  # Ekrana göre dinamik boyut
         self.mainLayout = QVBoxLayout(self)  # Ana layout
         self.clearFiltersButton = QPushButton("Filtreleri Temizle", self)
         self.clearFiltersButton.setStyleSheet(TEMIZLE_BUTONU_STILI)
@@ -579,8 +578,7 @@ class YeniElemanEklemeDialog(QDialog):
 
     def initUI(self):
         self.layout = QVBoxLayout(self)
-        w, h = calculate_minimum_size(400, 200)
-        self.setMinimumSize(w, h)  # Pencerenin en küçük olabileceği boyutu ayarlayın
+        apply_minimum_size(self, 400, 200)  # Ekrana göre dinamik boyut
         # Öneri sahibi ve öneri için etiket ve metin alanı
         if self.tur == DERSE_DAIR_ONERILER:
             self.label = QLabel("Öneri Sahibi", self)
@@ -742,8 +740,7 @@ class DersDuzenlemeWindow(QDialog):
         self.setWindowTitle("Ders Düzenle/Ekle")
 
         self.layout = QVBoxLayout(self)
-        w, h = calculate_minimum_size(535, 570)
-        self.setMinimumSize(w, h)  # Pencerenin en küçük olabileceği boyutu ayarlayın
+        apply_minimum_size(self, 535, 570)  # Ekrana göre dinamik boyut
         # Ders adı için alan
         ders_adi_label = QLabel("Ders Adı", self)
         ders_adi_label.setAlignment(Qt.AlignmentFlag.AlignCenter)

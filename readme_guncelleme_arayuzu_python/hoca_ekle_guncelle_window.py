@@ -23,6 +23,7 @@ from hoca_kisaltma_olustur import hoca_kisaltma_olustur
 from degiskenler import *
 from PyQt6.QtGui import QIcon
 from metin_islemleri import kisaltMetin
+from screen_utils import apply_minimum_size
 
 
 class HocaEkleGuncelleWindow(QDialog):
@@ -40,9 +41,7 @@ class HocaEkleGuncelleWindow(QDialog):
     def initUI(self):
         self.setWindowTitle("Hocaları Ekle/Güncelle")
         self.mainLayout = QVBoxLayout(self)  # Ana layout
-        self.setMinimumSize(
-            500, 200
-        )  # Pencerenin en küçük olabileceği boyutu ayarlayın
+        apply_minimum_size(self, 800, 600)  # Ekrana göre dinamik boyut
         self.clearFiltersButton = QPushButton("Filtreleri Temizle", self)
         self.clearFiltersButton.clicked.connect(
             lambda: self.clearFilters(is_clicked=True)
@@ -313,9 +312,7 @@ class HocaDuzenlemeWindow(QDialog):
             self.setWindowTitle("Hoca Düzenle")
         else:
             self.setWindowTitle("Hoca Ekle")
-        self.setMinimumSize(
-            600, 650
-        )  # Pencerenin en küçük olabileceği boyutu ayarlayın
+        apply_minimum_size(self, 600, 650)  # Ekrana göre dinamik boyut
         self.layout = QVBoxLayout(self)
         # Ünvan için alan
         self.unvan_label = QLabel("Ünvan")

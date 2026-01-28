@@ -15,6 +15,7 @@ from degiskenler import *
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIcon
 import json
+from screen_utils import apply_minimum_size, calculate_scroll_area_size
 
 
 class DonemEkleGuncelleWindow(QDialog):
@@ -53,8 +54,9 @@ class DonemEkleGuncelleWindow(QDialog):
             Qt.ScrollBarPolicy.ScrollBarAlwaysOff
         )
 
-        # ScrollArea için minimum boyutu belirle
-        self.scrollArea.setMinimumSize(580, 300)
+        # ScrollArea için minimum boyutu dinamik olarak belirle
+        w, h = calculate_scroll_area_size(580, 300)
+        self.scrollArea.setMinimumSize(w, h)
 
         self.yenile()
 
@@ -224,9 +226,7 @@ class DonemDuzenlemeWindow(QDialog):
 
     def initUI(self):
         self.setWindowTitle("Dönem Düzenleme Arayüzü")
-        self.setMinimumSize(
-            500, 200
-        )  # Pencerenin en küçük olabileceği boyutu ayarlayın
+        apply_minimum_size(self, 500, 200)  # Ekrana göre dinamik boyut
         # Ana layout
         self.mainLayout = QVBoxLayout()
         # Dönem adı

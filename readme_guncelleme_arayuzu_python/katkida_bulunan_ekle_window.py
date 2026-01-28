@@ -17,6 +17,7 @@ from degiskenler import *
 from PyQt6.QtGui import QIcon
 from PyQt6.QtCore import Qt
 from close_event import closeEventHandler
+from screen_utils import apply_minimum_size
 
 
 class BaseKatkidaBulunanWindow(QDialog):
@@ -31,9 +32,7 @@ class BaseKatkidaBulunanWindow(QDialog):
             self.setWindowIcon(QIcon(SELCUKLU_ICO_PATH))
 
     def initUI(self):
-        self.setMinimumSize(
-            600, 400
-        )  # Pencerenin en küçük olabileceği boyutu ayarlayın
+        apply_minimum_size(self, 800, 600)  # Ekrana göre dinamik boyut
         self.layout = QVBoxLayout()
         self.progressDialog = CustomProgressDialog("Kontrol Ediliyor...", self)
         self.progressDialog.close()

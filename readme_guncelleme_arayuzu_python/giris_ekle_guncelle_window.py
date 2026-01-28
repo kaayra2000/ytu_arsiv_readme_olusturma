@@ -20,6 +20,7 @@ from PyQt6.QtGui import QIcon, QGuiApplication
 import re
 from helpers.yukari_asagi_dugme_dizilimi import YukariAsagiDugmeDizilimi
 from close_event import closeEventHandler
+from screen_utils import apply_minimum_size
 
 
 class GirisEkleGuncelleWindow(QDialog):
@@ -36,9 +37,7 @@ class GirisEkleGuncelleWindow(QDialog):
 
     def initUI(self):
         self.setWindowTitle("Giriş Güncelleme")
-        self.setMinimumSize(
-            500, 200
-        )  # Pencerenin en küçük olabileceği boyutu ayarlayın
+        apply_minimum_size(self, 800, 600)  # Ekrana göre dinamik boyut
         self.mainLayout = QVBoxLayout(self)  # Ana layout
         # Filtreleme için QLineEdit oluştur
         self.clearFiltersButton = QPushButton("Filtreleri Temizle", self)

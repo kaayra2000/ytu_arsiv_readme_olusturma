@@ -8,7 +8,7 @@ from threadler import CMDScriptRunnerThread, PythonFunctionRunnerThread
 from PyQt6.QtGui import QIcon
 from hoca_ve_ders_adlari_window import HocaDersAdlariWindow
 from git_helper import GitDialog, GitHelper
-from screen_utils import calculate_minimum_size
+from screen_utils import apply_minimum_size
 
 # google_forum_islemleri modüllerini import etmek için path ekle
 _google_form_path = os.path.join(os.path.dirname(__file__), '..', 'google_forum_islemleri')
@@ -26,8 +26,7 @@ class GitIslemleriWindow(QDialog):
         super(GitIslemleriWindow, self).__init__(parent)
         self.setModal(True)
         self.setWindowTitle("Git İşlemleri")
-        w, h = calculate_minimum_size(300, 200)
-        self.setMinimumSize(w, h)
+        apply_minimum_size(self, 400, 400)  # Ekrana göre dinamik boyut
         # Dialog layout
         self.layout = QVBoxLayout()
         if os.path.exists(SELCUKLU_ICO_PATH):

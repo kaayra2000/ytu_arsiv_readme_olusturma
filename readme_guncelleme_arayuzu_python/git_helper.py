@@ -33,7 +33,7 @@ from helpers.progress_dialog_helper import (
 from threadler import CMDScriptRunnerThread
 import difflib
 import os
-from screen_utils import calculate_minimum_size
+from screen_utils import apply_minimum_size
 
 
 class GitHelper:
@@ -147,8 +147,7 @@ class GitDialog(QDialog):
         super().__init__(parent=parent)
         self.setModal(True)
         self.repo_path = repo_path
-        w, h = calculate_minimum_size(550, 650)
-        self.setMinimumSize(w, h)
+        apply_minimum_size(self, 550, 650)  # Ekrana göre dinamik boyut
         self.timer = QTimer()
         self.timer.timeout.connect(self.processNextItem)
         self.status_lines = []

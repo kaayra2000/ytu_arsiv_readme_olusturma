@@ -18,6 +18,7 @@ from PyQt6.QtCore import Qt
 from degiskenler import *
 from metin_islemleri import kisaltMetin
 from PyQt6.QtGui import QIcon
+from screen_utils import apply_minimum_size, calculate_scroll_area_size
 
 
 class TalimatDialog(QDialog):
@@ -55,8 +56,9 @@ class TalimatDialog(QDialog):
             Qt.ScrollBarPolicy.ScrollBarAlwaysOff
         )
 
-        # ScrollArea için minimum boyutu belirle
-        self.scrollArea.setMinimumSize(580, 300)
+        # ScrollArea için minimum boyutu dinamik olarak belirle
+        w, h = calculate_scroll_area_size(580, 300)
+        self.scrollArea.setMinimumSize(w, h)
 
         self.yenile()
 
@@ -272,7 +274,8 @@ class KavramDetayDialog(QDialog):
         self.scrollArea.setWidgetResizable(True)
         self.scrollLayout = QVBoxLayout(self.scrollAreaWidgetContents)
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
-        self.scrollArea.setMinimumSize(650, 300)
+        w, h = calculate_scroll_area_size(650, 300)
+        self.scrollArea.setMinimumSize(w, h)
         self.layout.addWidget(self.scrollArea)
 
         self.aciklamaListele()
@@ -430,8 +433,9 @@ class KavramDialog(QDialog):
         self.scrollArea.setHorizontalScrollBarPolicy(
             Qt.ScrollBarPolicy.ScrollBarAlwaysOff
         )
-        # ScrollArea için minimum boyutu belirle
-        self.scrollArea.setMinimumSize(650, 300)
+        # ScrollArea için minimum boyutu dinamik olarak belirle
+        w, h = calculate_scroll_area_size(650, 300)
+        self.scrollArea.setMinimumSize(w, h)
         self.yenile()
 
         # Ekle butonunu ekle
@@ -656,7 +660,8 @@ class AciklamaDialog(QDialog):
         self.scrollArea.setHorizontalScrollBarPolicy(
             Qt.ScrollBarPolicy.ScrollBarAlwaysOff
         )
-        self.scrollArea.setMinimumSize(580, 300)
+        w, h = calculate_scroll_area_size(580, 300)
+        self.scrollArea.setMinimumSize(w, h)
         self.yenile()
 
         # Ekle butonunu ekle
@@ -846,7 +851,7 @@ class RepoKullanimiDialog(QDialog):
     def __init__(self, json_dosyasi=REPO_KULLANIMI_JSON_PATH, parent=None):
         super().__init__(parent)
         self.setModal(True)
-        self.setMinimumSize(600, 300)
+        apply_minimum_size(self, 600, 300)  # Ekrana göre dinamik boyut
         self.json_dosyasi = json_dosyasi
         self.jsonKontrol()
         self.initUI()
@@ -950,7 +955,7 @@ class RepoKullanimiDialog(QDialog):
         self.jsonGuncelle()
 
     def acTalimatDialog(self):
-        dialog = TalimatDialog()
+        dialog = TalimatDialog(parent=self)
         dialog.exec()
 
     def acKavramDialog(self):

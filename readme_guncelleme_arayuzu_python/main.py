@@ -12,6 +12,9 @@ from yazarin_notlari_duzenle_window import YazarinNotlariWindow
 from ders_ekle_guncelle_window import DersEkleGuncelleWindow
 from hoca_ekle_guncelle_window import HocaEkleGuncelleWindow
 from helpers.progress_dialog_helper import CustomProgressDialog
+from degiskenler import (
+    _MODULE_DIR, STIL_QSS, SELCUKLU_ICO_PATH, KONFIGURASYON_JSON_PATH
+)
 from degiskenler import *
 from repo_kullanimi_window import RepoKullanimiDialog
 from giris_ekle_guncelle_window import GirisEkleGuncelleWindow
@@ -193,7 +196,8 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     # Stil dosyasını oku
     try:
-        with open(STIL_QSS, "r", encoding="utf-8") as f:
+        stil_yolu = os.path.join(_MODULE_DIR, STIL_QSS) if getattr(sys, 'frozen', False) else STIL_QSS
+        with open(stil_yolu, "r", encoding="utf-8") as f:
             _style = f.read()
             app.setStyleSheet(_style)
     except:

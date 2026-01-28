@@ -2,9 +2,13 @@ import pandas as pd
 import os
 import json
 import shutil
-from icerik_kontrol import *
+try:
+    from google_forum_islemleri.icerik_kontrol import *
+    from google_forum_islemleri.csv_kontrol_et import csv_kontrol_et
+except ImportError:
+    from icerik_kontrol import *
+    from csv_kontrol_et import csv_kontrol_et
 import sys
-from csv_kontrol_et import csv_kontrol_et
 
 # Mevcut dosyanın bulunduğu dizini al
 current_directory = os.path.dirname(os.path.abspath(__file__))

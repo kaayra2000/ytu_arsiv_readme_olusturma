@@ -17,6 +17,8 @@ def donem_sayisi_getir(donem):
 
 
 def elideText(text, max_length=40):
+    if text is None:
+        return ""
     if len(text) <= max_length:
         return text
     else:
@@ -24,6 +26,7 @@ def elideText(text, max_length=40):
         prefix_length = keep_length // 2
         suffix_length = keep_length - prefix_length
         return text[:prefix_length] + "..." + text[-suffix_length:]
+
 
 
 def donem_dosya_yolu_getir(donem, DOKUMANLAR_REPO_YOLU=".."):

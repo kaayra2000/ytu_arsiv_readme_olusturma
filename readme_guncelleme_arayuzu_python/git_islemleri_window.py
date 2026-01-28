@@ -180,8 +180,8 @@ class GitIslemleriWindow(QDialog):
 
     def update_google_form(self):
         # Modülleri dinamik olarak import et
-        from hoca_icerikleri_guncelle import main as hoca_main
-        from ders_icerikleri_guncelle import main as ders_main
+        from google_forum_islemleri.hoca_icerikleri_guncelle import main as hoca_main
+        from google_forum_islemleri.ders_icerikleri_guncelle import main as ders_main
         
         yol = os.path.join(BIR_UST_DIZIN, GOOGLE_FORM_ISLEMLERI)
         self.run_python_function(
@@ -263,7 +263,7 @@ class GitIslemleriWindow(QDialog):
 
     def start_routine_check(self):
         # Modülü dinamik olarak import et
-        from google_form_rutin_kontrol import main as rutin_main
+        from google_forum_islemleri.google_form_rutin_kontrol import main as rutin_main
         
         yol = os.path.join(BIR_UST_DIZIN, GOOGLE_FORM_ISLEMLERI)
         self.run_python_function(

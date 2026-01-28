@@ -17,8 +17,6 @@ sys.path.append(absolute_path)
 from degiskenler import *
 from cikti_yazdirma import custom_write, custom_write_error
 
-custom_write("Ders içerikleri güncelleniyor...\n")
-
 SLEEP_TIME = 10
 
 DERS_YILDIZLARI_DOSYASI = DERS_OYLAMA_LINKI_CSV
@@ -204,18 +202,30 @@ def guncelle_ders_yildizlari(data, sheets_url):
             )
 
 
-# JSON dosyasını oku
-json_file_path = DERSLER_JSON_NAME  # JSON dosyasının yolu
-with open(os.path.join(BIR_UST_DIZIN, json_file_path), "r", encoding="utf-8") as file:
-    data = json.load(file)
+def main():
+    """
+    Ders içeriklerini Google Form verilerinden güncelleyen ana fonksiyon.
+    Bu fonksiyon doğrudan çağrılabilir veya modül olarak import edilebilir.
+    """
+    custom_write("Ders içerikleri güncelleniyor...\n")
+    
+    # JSON dosyasını oku
+    json_file_path = DERSLER_JSON_NAME  # JSON dosyasının yolu
+    with open(os.path.join(BIR_UST_DIZIN, json_file_path), "r", encoding="utf-8") as file:
+        data = json.load(file)
 
-guncelle_ogrenci_gorusleri(data, DERS_YORUMLARI_DOSYASI)
-guncelle_ders_yildizlari(data, DERS_YILDIZLARI_DOSYASI)
+    guncelle_ogrenci_gorusleri(data, DERS_YORUMLARI_DOSYASI)
+    guncelle_ders_yildizlari(data, DERS_YILDIZLARI_DOSYASI)
 
-json_file_name = os.path.basename(json_file_path)
-with open(json_file_name, "w", encoding="utf-8") as file:
-    json.dump(data, file, ensure_ascii=False, indent=4)
-# Dosyayı kopyalamak için:
-shutil.copy(json_file_name, os.path.join(BIR_UST_DIZIN, json_file_path))
+    json_file_name = os.path.basename(json_file_path)
+    with open(json_file_name, "w", encoding="utf-8") as file:
+        json.dump(data, file, ensure_ascii=False, indent=4)
+    # Dosyayı kopyalamak için:
+    shutil.copy(json_file_name, os.path.join(BIR_UST_DIZIN, json_file_path))
 
-custom_write("Ders içerikleri güncellendi.\n")
+    custom_write("Ders içerikleri güncellendi.\n")
+
+
+if __name__ == "__main__":
+    main()
+

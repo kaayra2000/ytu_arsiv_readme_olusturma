@@ -115,7 +115,42 @@ FAYDALI_OLABILECEK_KAYNAKLAR_UYARI_MESAJI = "Kaynaklar öğrenciler tarafından 
 KARA_LISTE_TXT = "kara_liste.txt"
 STIL_QSS = "stil.qss"
 README_MD = "README.md"
-BIR_UST_DIZIN = ".."
+
+# PyInstaller uyumlu yol hesaplama
+def _get_base_paths():
+    """
+    PyInstaller ve normal Python çalışması için temel yolları hesapla.
+    Returns:
+        tuple: (module_dir, project_root, bir_ust_dizin)
+    """
+    if getattr(sys, 'frozen', False):
+        # PyInstaller ile paketlenmiş
+        # _MEIPASS: paket içindeki dosyalar
+        # executable dir: proje kökü olarak kullanılacak
+        bundle_dir = sys._MEIPASS
+        exe_dir = os.path.dirname(sys.executable)
+        # Executable'ın bulunduğu dizin proje köküdür
+        project_root = exe_dir
+        # Paket içindeki modül dizini
+        module_dir = bundle_dir
+        # BIR_UST_DIZIN artık proje kökü (executable dizini)
+        bir_ust_dizin = project_root
+    else:
+        # Normal Python çalışması
+        # Bu dosyanın bulunduğu dizin (readme_guncelleme_arayuzu_python)
+        module_dir = os.path.dirname(os.path.abspath(__file__))
+        # Proje kökü (bir üst dizin)
+        project_root = os.path.dirname(module_dir)
+        # Göreli yol olarak ".." kullanılabilir ama mutlak yol daha güvenli
+        bir_ust_dizin = project_root
+    
+    return module_dir, project_root, bir_ust_dizin
+
+_MODULE_DIR, _PROJECT_ROOT, BIR_UST_DIZIN = _get_base_paths()
+
+# Göreli yol olarak da sakla (bazı yerler hala bunu bekliyor olabilir)
+BIR_UST_DIZIN_GORELI = ".."
+
 GOOGLE_FORM_ISLEMLERI = "google_forum_islemleri"
 JSON_DOSYALARI_DEPOSU_DOSYA_ADI = "json_depo_bilgileri.txt"
 JSON_DOSYALARI_DEPOSU_DOSYA_YOLU = os.path.join(
@@ -124,15 +159,16 @@ JSON_DOSYALARI_DEPOSU_DOSYA_YOLU = os.path.join(
 JSON_DOSYALARI_DEPOSU = None
 README_GUNCELLEME_PYTHON = "readme_guncelleme_arayuzu_python"
 try:
-    curr_dir = os.getcwd()
-    curr_dir = os.path.basename(curr_dir)
-    if GOOGLE_FORM_ISLEMLERI in curr_dir or README_GUNCELLEME_PYTHON in curr_dir:
-        tmp_json_depo_dosyasi = JSON_DOSYALARI_DEPOSU_DOSYA_YOLU
-    else:
-        tmp_json_depo_dosyasi = JSON_DOSYALARI_DEPOSU_DOSYA_ADI
+    # Önce proje kökünde ara
+    tmp_json_depo_dosyasi = os.path.join(BIR_UST_DIZIN, JSON_DOSYALARI_DEPOSU_DOSYA_ADI)
     if not os.path.exists(tmp_json_depo_dosyasi):
-        with open(tmp_json_depo_dosyasi, "w", encoding="utf-8") as json_depo_dosyasi:
-            json_depo_dosyasi.write(".")
+        # Bulunamazsa mevcut dizinde ara (cwd tabanlı eski davranış için)
+        if os.path.exists(JSON_DOSYALARI_DEPOSU_DOSYA_ADI):
+            tmp_json_depo_dosyasi = JSON_DOSYALARI_DEPOSU_DOSYA_ADI
+        else:
+            # Oluştur
+            with open(tmp_json_depo_dosyasi, "w", encoding="utf-8") as json_depo_dosyasi:
+                json_depo_dosyasi.write(".")
 
     with open(tmp_json_depo_dosyasi, "r", encoding="utf-8") as json_depo_dosyasi:
         for line in json_depo_dosyasi:
@@ -142,7 +178,7 @@ try:
                 )
             else:
                 JSON_DOSYALARI_DEPOSU = line.strip()
-except FileNotFoundError:
+except (FileNotFoundError, PermissionError):
     JSON_DOSYALARI_DEPOSU = ""
 DERSLER_JSON_NAME = "dersler.json"
 DERSLER_JSON_NAME = os.path.join(JSON_DOSYALARI_DEPOSU, DERSLER_JSON_NAME)
@@ -326,7 +362,9 @@ ARAYUZU_GITHULA_ESITLE_SH = ARAYUZU_GITHULA_ESITLE + ".sh"
 # IKONLAR
 
 ## IKON ADLARI
-IKON_PATH = "ikonlar"
+IKON_PATH_GORELI = "ikonlar"
+# PyInstaller için mutlak yol (ikonlar modül dizininde)
+IKON_PATH = os.path.join(_MODULE_DIR, IKON_PATH_GORELI)
 SELCUKLU_ICO = "selcuklu.png"
 OSMANLI_ICO = "osmanli.png"
 SAVE_ICO = "save.png"

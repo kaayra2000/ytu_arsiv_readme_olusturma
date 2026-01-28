@@ -228,3 +228,84 @@ class CMDScriptRunnerThread(QThread):
 
     def durdur(self):
         self.calismaya_devam_et = False
+
+
+class PythonFunctionRunnerThread(QThread):
+    """
+    Python fonksiyonlarını subprocess yerine doğrudan çalıştıran thread.
+    PyInstaller ile derlenmiş uygulamalarda kullanılmak üzere tasarlanmıştır.
+    """
+    finished = pyqtSignal(str)
+    error = pyqtSignal(str)
+    info = pyqtSignal(str)
+
+    def __init__(self, functions, baslik=None):
+        """
+        Args:
+            functions: Çalıştırılacak fonksiyonların listesi (callable veya tuple(callable, args, kwargs))
+            baslik: Progress dialog için başlık
+        """
+        super().__init__()
+        self.functions = functions if isinstance(functions, list) else [functions]
+        self.calismaya_devam_et = True
+        self.baslik = baslik
+
+    def _emit_info(self, message):
+        """custom_write callback'i - mesajları info sinyaline yönlendir."""
+        if message:
+            self.info.emit(message)
+
+    def run(self):
+        from cikti_yazdirma import set_progress_callback, clear_progress_callback
+        
+        son_bilgi_mesaj = ""
+        try:
+            # Callback'i ayarla - custom_write çağrıları artık info sinyaline gidecek
+            set_progress_callback(self._emit_info)
+            
+            for func_item in self.functions:
+                if not self.calismaya_devam_et:
+                    mesaj = "İşlem kullanıcı tarafından iptal edildi."
+                    self.error.emit(mesaj)
+                    return
+
+                # Fonksiyon bilgisini ayrıştır
+                if callable(func_item):
+                    func = func_item
+                    args = ()
+                    kwargs = {}
+                elif isinstance(func_item, tuple):
+                    func = func_item[0]
+                    args = func_item[1] if len(func_item) > 1 else ()
+                    kwargs = func_item[2] if len(func_item) > 2 else {}
+                else:
+                    self.error.emit(f"Geçersiz fonksiyon öğesi: {func_item}")
+                    return
+
+                # Fonksiyon adını kaydet (sonuç mesajı için)
+                func_name = getattr(func, '__name__', str(func))
+                son_bilgi_mesaj = f"{func_name} tamamlandı"
+
+                # Fonksiyonu çalıştır (fonksiyon kendi progress mesajlarını gönderecek)
+                func(*args, **kwargs)
+
+            self.finished.emit(f"İşlem başarıyla tamamlandı.\n{son_bilgi_mesaj}")
+
+        except SystemExit as e:
+            # SystemExit'i yakala (exit(1) çağrıları için)
+            if e.code != 0:
+                self.error.emit(f"İşlem hata ile sonlandı (kod: {e.code})")
+            else:
+                self.finished.emit(f"İşlem başarıyla tamamlandı.\n{son_bilgi_mesaj}")
+        except Exception as e:
+            self.error.emit(f"Hata oluştu: {str(e)}")
+        finally:
+            # Callback'i temizle
+            clear_progress_callback()
+
+    def durdur(self):
+        from cikti_yazdirma import request_stop
+        self.calismaya_devam_et = False
+        request_stop()  # Uzun süren fonksiyonların kontrol edebileceği global flag
+
+

@@ -4,10 +4,21 @@ import textwrap
 from PyQt6.QtWidgets import QDialog, QVBoxLayout, QPushButton, QMessageBox, QApplication
 from degiskenler import *
 from helpers.progress_dialog_helper import CustomProgressDialogWithCancel
-from threadler import CMDScriptRunnerThread
+from threadler import CMDScriptRunnerThread, PythonFunctionRunnerThread
 from PyQt6.QtGui import QIcon
 from hoca_ve_ders_adlari_window import HocaDersAdlariWindow
 from git_helper import GitDialog, GitHelper
+from screen_utils import calculate_minimum_size
+
+# google_forum_islemleri modüllerini import etmek için path ekle
+_google_form_path = os.path.join(os.path.dirname(__file__), '..', 'google_forum_islemleri')
+if _google_form_path not in sys.path:
+    sys.path.insert(0, _google_form_path)
+
+# readme_olustur modülünü import etmek için path ekle
+_parent_path = os.path.join(os.path.dirname(__file__), '..')
+if _parent_path not in sys.path:
+    sys.path.insert(0, _parent_path)
 
 
 class GitIslemleriWindow(QDialog):
@@ -15,7 +26,8 @@ class GitIslemleriWindow(QDialog):
         super(GitIslemleriWindow, self).__init__(parent)
         self.setModal(True)
         self.setWindowTitle("Git İşlemleri")
-        self.setMinimumSize(300, 200)
+        w, h = calculate_minimum_size(300, 200)
+        self.setMinimumSize(w, h)
         # Dialog layout
         self.layout = QVBoxLayout()
         if os.path.exists(SELCUKLU_ICO_PATH):
@@ -129,28 +141,68 @@ class GitIslemleriWindow(QDialog):
         # Güncellenmiş mesajı etiket metni olarak ayarla
         self.progress_dialog.setLabelText(wrapped_message)
 
+    def run_python_function(self, functions, baslik, islem="", dizin=None):
+        """
+        Python fonksiyonlarını subprocess yerine doğrudan çalıştırır.
+        PyInstaller ile derlenmiş uygulamalarda çalışması için tasarlanmıştır.
+        
+        Args:
+            functions: Çalıştırılacak fonksiyonların listesi
+            baslik: Progress dialog başlığı
+            islem: İşlem açıklaması (onay dialog için)
+            dizin: Çalışma dizini (None ise değiştirilmez)
+        """
+        cevap = QMessageBox.question(
+            self,
+            "Onay",
+            f"{islem} işlemini başlatmak istediğinize emin misiniz?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+        )
+        if cevap == QMessageBox.StandardButton.No:
+            QMessageBox.information(self, "İptal", "İşlem iptal edildi.")
+            return
+        
+        self.original_dir = os.getcwd()
+        if dizin:
+            os.chdir(dizin)
+        
+        self.progress_dialog = CustomProgressDialogWithCancel(
+            baslik, self, self.thread_durduruluyor
+        )
+        
+        # PythonFunctionRunnerThread'i başlat
+        self.thread = PythonFunctionRunnerThread(functions, islem)
+        self.thread.finished.connect(self.on_finished)
+        self.thread.error.connect(self.on_error)
+        self.thread.info.connect(self.info)
+        self.thread.start()
+        self.progress_dialog.show()
+
     def update_google_form(self):
-        komut = f"python3 {HOCA_ICERIKLERI_GUNCELLE_PY}"
-        komut += f" && python3 {DERS_ICERIKLERI_GUNCELLE_PY}"
+        # Modülleri dinamik olarak import et
+        from hoca_icerikleri_guncelle import main as hoca_main
+        from ders_icerikleri_guncelle import main as ders_main
+        
         yol = os.path.join(BIR_UST_DIZIN, GOOGLE_FORM_ISLEMLERI)
-        self.run_script(
-            komut,
+        self.run_python_function(
+            [hoca_main, ders_main],
             baslik="Google Form Güncelleniyor...",
             islem="Google Form Güncelleme",
             dizin=yol,
         )
 
     def update_readme(self):
-        # bir üst dizine geçip python3 readme_olustur.py çalışıp geri ana dizzine gelcez
-        komut = f"python3 {README_OLUSTUR_PY}"
+        # Modülü dinamik olarak import et
+        from readme_olustur import main as readme_main
+        
         yol = BIR_UST_DIZIN
-        # workind dir değişecek
-        self.run_script(
-            komut,
+        self.run_python_function(
+            [readme_main],
             baslik="README.md Güncelleniyor...",
             islem="README.md Güncelleme",
             dizin=yol,
         )
+
 
     def push_changes(self):
         yol = os.path.join(BIR_UST_DIZIN, DOKUMANLAR_REPO_YOLU)
@@ -210,10 +262,15 @@ class GitIslemleriWindow(QDialog):
         sys.exit()
 
     def start_routine_check(self):
-        komut = f"python3 {RUTIN_KONTROL_PY}"
+        # Modülü dinamik olarak import et
+        from google_form_rutin_kontrol import main as rutin_main
+        
         yol = os.path.join(BIR_UST_DIZIN, GOOGLE_FORM_ISLEMLERI)
-        self.run_script(
-            komut, baslik="Rutin Kontrol Yapılıyor...", islem="Rutin Kontrol", dizin=yol
+        self.run_python_function(
+            [rutin_main],
+            baslik="Rutin Kontrol Yapılıyor...",
+            islem="Rutin Kontrol",
+            dizin=yol,
         )
 
     def git_degisiklik_kontrol(self, git_dizin_yolu="."):

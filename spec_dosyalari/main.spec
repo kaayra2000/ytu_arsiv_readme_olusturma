@@ -5,8 +5,19 @@ a = Analysis(
     ['../readme_guncelleme_arayuzu_python/main.py'],
     pathex=[],
     binaries=[],
-    datas=[('../readme_guncelleme_arayuzu_python', '.')],
-    hiddenimports=[],
+    datas=[
+        ('../readme_guncelleme_arayuzu_python', '.'),
+        ('../google_forum_islemleri', 'google_forum_islemleri'),
+        ('../writers', 'writers'),
+    ],
+    hiddenimports=[
+        'pandas',
+        'numpy',
+        'requests',
+        'google_forum_islemleri.ders_icerikleri_guncelle',
+        'google_forum_islemleri.hoca_icerikleri_guncelle',
+        'google_forum_islemleri.google_form_rutin_kontrol',
+    ],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -35,3 +46,4 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
 )
+

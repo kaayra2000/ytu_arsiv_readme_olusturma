@@ -47,14 +47,16 @@ class DerslerWriter(SectionWriter):
     
     def _write_ogrenci_gorusu(self, writer: "BufferedReadmeWriter", gorusler: list, girinti: str = "") -> None:
         """Öğrenci görüşlerini yaz."""
-        if gorusler:
-            writer.writeline(f"{girinti}- 💭 **Öğrenci Görüşleri:**")
-            for gorus in gorusler:
-                kisi = gorus.get(KISI, "").strip()
-                yorum = gorus.get(YORUM, "")
-                tarih = gorustenTarihGetir(gorus)
-                writer.writeline(f"{girinti}  - 👤 **_{kisi}_**: {yorum} {tarih}")
-            writer.writeline(f"{girinti}    - ℹ️ Siz de [linkten]({DERS_YORUMLAMA_LINKI}) anonim şekilde görüşlerinizi belirtebilirsiniz.")
+        if not gorusler:
+            return
+        
+        writer.writeline(f"{girinti}- 💭 **Öğrenci Görüşleri:**")
+        for gorus in gorusler:
+            kisi = gorus.get(KISI, "").strip()
+            yorum = gorus.get(YORUM, "")
+            tarih = gorustenTarihGetir(gorus)
+            writer.writeline(f"{girinti}  - 👤 **_{kisi}_**: {yorum} {tarih}")
+        writer.writeline(f"{girinti}    - ℹ️ Siz de [linkten]({DERS_YORUMLAMA_LINKI}) anonim şekilde görüşlerinizi belirtebilirsiniz.")
     
     def _write_yildizlar(
         self, writer: "BufferedReadmeWriter",

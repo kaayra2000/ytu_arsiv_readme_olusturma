@@ -10,10 +10,10 @@ sys.path.append(
     os.path.join(os.path.dirname(__file__), "..", "readme_guncelleme_arayuzu_python")
 )
 from degiskenler import *
-from cikti_yazdirma import custom_write, custom_write_error
+from cikti_yazdirma import custom_write, custom_write_error, is_stop_requested
 
 
-def check_for_updates(key, url):
+def check_for_updates(key, url, previous_hashes):
     # Belirtilen URL'den .xlsx dosyasını indir
     response = requests.get(url)
     data = response.content
@@ -138,37 +138,60 @@ def update_repository(deneme_sayisi=0):
         os.chdir(original_directory)
 
 
-urls = {
-    "DERS YORUMLAMA": DERS_YORUMLAMA_LINKI_CSV,
-    "HOCA YORUMLAMA": HOCA_YORULMALA_LINKI_CSV,
-    "DERS OZELLIKLERI OYLAMA": DERS_OYLAMA_LINKI_CSV,
-    "HOCA OZELLIKLERI OYLAMA": HOCA_OYLAMA_LINKI_CSV,
-}
-# Dosyaların son boyutlarını saklamak için bir sözlük
-previous_hashes = {}
-for key, url in urls.items():
-    # URL'lerin hash değerlerini hesapla
-    response = requests.get(url)
-    data = response.content
-    previous_hashes[url] = hashlib.md5(data).hexdigest()
-update_repository()
-i = 0
-guncelleme_sayisi = 0
-timeout = 180
-div = 3
-custom_write("Script calisiyor...\n")
-# Sonsuz döngü içinde URL'leri kontrol et ve güncelle
-while True:
+def main():
+    """
+    Rutin kontrol ana fonksiyonu.
+    Google Form değişikliklerini sürekli kontrol eder ve güncelleme yapar.
+    """
+    
+    urls = {
+        "DERS YORUMLAMA": DERS_YORUMLAMA_LINKI_CSV,
+        "HOCA YORUMLAMA": HOCA_YORULMALA_LINKI_CSV,
+        "DERS OZELLIKLERI OYLAMA": DERS_OYLAMA_LINKI_CSV,
+        "HOCA OZELLIKLERI OYLAMA": HOCA_OYLAMA_LINKI_CSV,
+    }
+    # Dosyaların son boyutlarını saklamak için bir sözlük
+    previous_hashes = {}
     for key, url in urls.items():
-        if check_for_updates(key, url):
-            custom_write(f"Guncelleme tespit edildi: {key}\n")
-            guncelleme_sayisi += 1
-            update_repository(guncelleme_sayisi)
-        else:
-            custom_write(f"Guncelleme yok: {key}\n")
-    i += 1
-    for k in range(0, int(timeout / div)):
-        custom_write(
-            f"{timeout-k*div} saniye sonra kontrol edilecek. Kontol sayisi {i} :: Guncelleme sayisi {guncelleme_sayisi}\n"
-        )  # '\r' ile satırın başına dön
-        time.sleep(div)
+        # URL'lerin hash değerlerini hesapla
+        response = requests.get(url)
+        data = response.content
+        previous_hashes[url] = hashlib.md5(data).hexdigest()
+    update_repository()
+    i = 0
+    guncelleme_sayisi = 0
+    timeout = 180
+    div = 3
+    custom_write("Script calisiyor...\n")
+    # Sonsuz döngü içinde URL'leri kontrol et ve güncelle
+    while not is_stop_requested():
+        for key, url in urls.items():
+            if is_stop_requested():
+                custom_write("İptal edildi.\n")
+                return
+            if check_for_updates(key, url, previous_hashes):
+                custom_write(f"Guncelleme tespit edildi: {key}\n")
+                guncelleme_sayisi += 1
+                update_repository(guncelleme_sayisi)
+            else:
+                custom_write(f"Guncelleme yok: {key}\n")
+        i += 1
+        for k in range(0, int(timeout / div)):
+            if is_stop_requested():
+                custom_write("İptal edildi.\n")
+                return
+            custom_write(
+                f"{timeout-k*div} saniye sonra kontrol edilecek. Kontol sayisi {i} :: Guncelleme sayisi {guncelleme_sayisi}\n"
+            )  # '\r' ile satırın başına dön
+            # Sleep'i küçük parçalara böl (daha hızlı iptal için)
+            for _ in range(div):
+                if is_stop_requested():
+                    custom_write("İptal edildi.\n")
+                    return
+                time.sleep(1)
+    
+    custom_write("İptal edildi.\n")
+
+if __name__ == "__main__":
+    main()
+

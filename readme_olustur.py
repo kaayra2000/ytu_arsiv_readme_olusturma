@@ -341,6 +341,8 @@ class ReadmeGenerator:
     
     def generate_all(self) -> None:
         """Tüm README dosyalarını oluştur."""
+        start_time = time.time()
+        
         # Konfigürasyon kontrolü
         konfigurasyon_json_guncelle(KONFIGURASYON_JSON_NAME)
         
@@ -348,6 +350,9 @@ class ReadmeGenerator:
         self.generate_ana_readme()
         self.generate_ders_readmes()
         self.generate_donem_readmes()
+        
+        elapsed = time.time() - start_time
+        custom_write(f"\nTum README dosyalari {elapsed:.2f} saniyede olusturuldu.\n")
 
 
 def main():

@@ -151,7 +151,8 @@ class HocaEkleGuncelleWindow(QDialog):
         return self.data != self.initial_data
 
     def closeEvent(self, event):
-        closeEventHandler(self, event, self.is_programmatic_close, self.hasChanges())
+        # Bu pencere değişiklikleri anında kaydediyor, soru sormadan kapat
+        event.accept()
 
     def keyPressEvent(self, event):
         if (

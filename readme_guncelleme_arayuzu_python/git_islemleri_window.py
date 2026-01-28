@@ -78,7 +78,7 @@ class GitIslemleriWindow(QDialog):
         hoca_ders_adlari_window = HocaDersAdlariWindow(self)
         hoca_ders_adlari_window.exec()
 
-    def run_script(self, script_path, baslik, islem="", dizin=BIR_UST_DIZIN):
+    def run_script(self, script_path, baslik, islem="", dizin=BIR_UST_DIZIN, arayuz_guncelleme=False):
         cevap = QMessageBox.question(
             self,
             "Onay",
@@ -95,7 +95,7 @@ class GitIslemleriWindow(QDialog):
         )
         # Thread'i başlat
         self.thread = CMDScriptRunnerThread(script_path, islem)
-        if script_path == "git fetch --all && git reset --hard origin/main":
+        if arayuz_guncelleme:
             self.thread.finished.connect(self.interface_updated_succesfully)
         else:
             self.thread.finished.connect(self.on_finished)
@@ -217,16 +217,26 @@ class GitIslemleriWindow(QDialog):
         gitDialog.getStatusToInterface()
 
     def update_dosyalar_repo(self):
-        if not self.git_degisiklik_kontrol(
-            os.path.join(BIR_UST_DIZIN, DOKUMANLAR_REPO_YOLU)
-        ):
-            QMessageBox.critical(
-                None,
-                "Hata",
-                "Dizinde değişiklikler var. Lütfen önce bu değişiklikleri commit yapın veya geri alın.",
+        repo_yolu = os.path.join(BIR_UST_DIZIN, DOKUMANLAR_REPO_YOLU)
+        degisiklik_var = not self.git_degisiklik_kontrol(repo_yolu)
+        
+        if degisiklik_var:
+            cevap = QMessageBox.question(
+                self,
+                "Değişiklikler Tespit Edildi",
+                "Dizinde kaydedilmemiş değişiklikler var.\n\n"
+                "Değişiklikler geçici olarak saklanacak (stash), güncelleme yapılacak ve sonra geri yüklenecek.\n\n"
+                "Devam etmek istiyor musunuz?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             )
-            return
-        komut = f"git -C {DOKUMANLAR_REPO_YOLU} pull"
+            if cevap == QMessageBox.StandardButton.No:
+                QMessageBox.information(self, "İptal", "İşlem iptal edildi.")
+                return
+            # Stash (untracked dahil), pull --rebase, stash pop komutları
+            komut = f'git -C "{repo_yolu}" stash push --include-untracked -m "auto-stash-before-update" && git -C "{repo_yolu}" pull --rebase; git -C "{repo_yolu}" stash pop || true'
+        else:
+            komut = f'git -C "{repo_yolu}" pull --rebase'
+        
         self.run_script(
             komut,
             baslik="Dosya Değişiklikleri Github'dan Çekiliyor...",
@@ -234,25 +244,41 @@ class GitIslemleriWindow(QDialog):
         )
 
     def update_interface(self):
-        if not self.git_degisiklik_kontrol():
+        degisiklik_var = not self.git_degisiklik_kontrol()
+        
+        if degisiklik_var:
             cevap = QMessageBox.question(
                 self,
-                "Onay",
-                f"Yerelde değişiklikleriniz var ve işleme devam ederseniz değişiklikleriniz silinecek. Devam etmek istediğinize emin misiniz?",
+                "Değişiklikler Tespit Edildi",
+                "Yerelde değişiklikleriniz var.\n\n"
+                "Değişiklikler geçici olarak saklanacak (stash), güncelleme yapılacak ve sonra geri yüklenecek.\n\n"
+                "Devam etmek istiyor musunuz?",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             )
             if cevap == QMessageBox.StandardButton.No:
                 QMessageBox.information(self, "İptal", "İşlem iptal edildi.")
                 return
-        # hard reset komutu
-        komut = "git fetch --all && git reset --hard origin/main"
+            # Stash (untracked dahil), pull --rebase, stash pop komutu (güvenli güncelleme)
+            # --include-untracked: untracked dosyaları da saklar
+            # || true: stash başarısız olsa bile devam et (zaten değişiklik olmayabilir)
+            komut = "git stash push --include-untracked -m 'auto-stash-before-update' && git pull --rebase; git stash pop || true"
+        else:
+            # Değişiklik yoksa sadece pull --rebase
+            komut = "git pull --rebase"
+        
         self.run_script(
             komut,
             baslik="Arayüz Kodları Güncelleniyor...",
             islem="Arayüz Kodları Güncelleme",
+            arayuz_guncelleme=True,
         )
 
-    def interface_updated_succesfully(self):
+    def interface_updated_succesfully(self, output):
+        self.progress_dialog.close()
+        self.thread.wait()
+        del self.thread
+        del self.progress_dialog
+        os.chdir(self.original_dir)
         QMessageBox.information(
             self,
             "Bilgi",
@@ -261,6 +287,20 @@ class GitIslemleriWindow(QDialog):
         sys.exit()
 
     def start_routine_check(self):
+        # Sadece dokümanlar reposunda değişiklik kontrolü yap
+        dokumanlar_repo_yolu = os.path.join(BIR_UST_DIZIN, DOKUMANLAR_REPO_YOLU)
+        
+        dokumanlar_dizin_temiz = self.git_degisiklik_kontrol(dokumanlar_repo_yolu)
+        
+        if not dokumanlar_dizin_temiz:
+            QMessageBox.warning(
+                self, 
+                "Uyarı", 
+                "Dokümanlar dizininde kaydedilmemiş değişiklikler var.\n\n"
+                "Rutin kontrol sırasında dosyalar değişebilir. Lütfen önce değişiklikleri commit yapın veya geri alın."
+            )
+            return
+        
         # Modülü dinamik olarak import et
         from google_forum_islemleri.google_form_rutin_kontrol import main as rutin_main
         

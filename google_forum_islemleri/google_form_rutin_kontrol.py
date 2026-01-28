@@ -87,6 +87,11 @@ def update_repository(deneme_sayisi=0):
     google_form_guncelle_komutu = f"python3 {HOCA_ICERIKLERI_GUNCELLE_PY} && python3 {DERS_ICERIKLERI_GUNCELLE_PY}"
     # Git ve Python komutlarını sırayla çalıştır
     try:
+        # İptal kontrolü
+        if is_stop_requested():
+            custom_write("İptal edildi.\n")
+            return
+            
         repo_yolu = os.path.join(BIR_UST_DIZIN, DOKUMANLAR_REPO_YOLU)
         os.chdir(repo_yolu)
         stream = os.popen("git status")
@@ -97,33 +102,74 @@ def update_repository(deneme_sayisi=0):
             )
             exit(1)
 
+        # İptal kontrolü
+        if is_stop_requested():
+            custom_write("İptal edildi.\n")
+            return
+            
         if not execute_command("git fetch --all"):
             custom_write_error(
                 "Fetch sirasinda conflict olustu, script durduruluyor.\n"
             )
             return
+        
+        # İptal kontrolü
+        if is_stop_requested():
+            custom_write("İptal edildi.\n")
+            return
+            
         if not execute_command("git reset --hard origin/main"):
             custom_write_error(
                 "Reset sirasinda conflict olustu, script durduruluyor.\n"
             )
             return
+        
+        # İptal kontrolü
+        if is_stop_requested():
+            custom_write("İptal edildi.\n")
+            return
+            
         os.chdir(original_directory)
         if not execute_command(google_form_guncelle_komutu):
             custom_write_error(
                 "Google form icerikleri guncellenirken hata olustu, script durduruluyor.\n"
             )
             return
+        
+        # İptal kontrolü
+        if is_stop_requested():
+            custom_write("İptal edildi.\n")
+            return
+            
         os.chdir(BIR_UST_DIZIN)
         os.system(readme_guncelle_komutu)
+        
+        # İptal kontrolü
+        if is_stop_requested():
+            custom_write("İptal edildi.\n")
+            return
+            
         os.chdir(DOKUMANLAR_REPO_YOLU)
         if not execute_command("git add --all"):
             custom_write_error("Git add islemi basarisiz...\n")
             return
+        
+        # İptal kontrolü
+        if is_stop_requested():
+            custom_write("İptal edildi.\n")
+            return
+            
         if not execute_command('git commit -m "rutin readme güncellemesi (robot)"'):
             custom_write_error(
                 "Git commit islemi basarisiz, muhtemelen herhangi bir dosya degismedi...\n"
             )
             return
+        
+        # İptal kontrolü
+        if is_stop_requested():
+            custom_write("İptal edildi.\n")
+            return
+            
         if not execute_command("git push"):
             custom_write_error("Git push islemi basarisiz...\n")
             return
@@ -153,10 +199,20 @@ def main():
     # Dosyaların son boyutlarını saklamak için bir sözlük
     previous_hashes = {}
     for key, url in urls.items():
+        # İptal kontrolü
+        if is_stop_requested():
+            custom_write("İptal edildi.\n")
+            return
         # URL'lerin hash değerlerini hesapla
         response = requests.get(url)
         data = response.content
         previous_hashes[url] = hashlib.md5(data).hexdigest()
+    
+    # İptal kontrolü
+    if is_stop_requested():
+        custom_write("İptal edildi.\n")
+        return
+        
     update_repository()
     i = 0
     guncelleme_sayisi = 0

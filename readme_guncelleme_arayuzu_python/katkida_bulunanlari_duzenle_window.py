@@ -21,6 +21,7 @@ from metin_islemleri import kisaltMetin
 from close_event import closeEventHandler
 from katkida_bulunan_ekle_window import BaseKatkidaBulunanWindow
 from toast_notification import show_success
+from link_kontrol_window import LinkKontrolWindow
 
 
 
@@ -84,6 +85,12 @@ class KatkidaBulunanGuncelleWindow(QDialog):
         self.ekleBtn.clicked.connect(self.acKatkidaBulunanEkle)
         self.ekleBtn.setStyleSheet(EKLE_BUTONU_STILI)  # Yeşil arka plan
         self.mainLayout.addWidget(self.ekleBtn)
+
+        # Kırık link kontrolü butonu
+        self.linkKontrolBtn = QPushButton("🔗 Kırık Bağlantı Tetkiki", self)
+        self.linkKontrolBtn.setStyleSheet(LINK_KONTROL_BUTONU_STILI)
+        self.linkKontrolBtn.clicked.connect(self.kirikLinkKontrol)
+        self.mainLayout.addWidget(self.linkKontrolBtn)
 
         self.katkidaBulunanSayisiLabel = QLabel(
             f"Toplam {0} katkıda bulunan var."
@@ -242,6 +249,25 @@ class KatkidaBulunanGuncelleWindow(QDialog):
     def duzenle(self, kisi):
         self.duzenlemePenceresi = KatkidaBulunanDuzenleWindow(kisi, self.data, self)
         self.duzenlemePenceresi.show()
+
+    def kirikLinkKontrol(self):
+        """Tüm katkıda bulunanların iletişim linklerini kontrol eder."""
+        links = []
+        for kisi in self.data.get(KATKIDA_BULUNANLAR, []):
+            kisi_adi = kisi.get(AD, "Bilinmeyen Kişi")
+            iletisim_bilgileri = kisi.get(ILETISIM_BILGILERI, [])
+            for iletisim in iletisim_bilgileri:
+                baslik = iletisim.get(BASLIK, "")
+                link = iletisim.get(LINK, "")
+                if link and link.strip():
+                    links.append((f"{kisi_adi} - {baslik}", link))
+        
+        self.linkKontrolWindow = LinkKontrolWindow(
+            links,
+            title="Katkıda Bulunanlar Linkleri Kontrolü",
+            parent=self
+        )
+        self.linkKontrolWindow.show()
 
 
 class KatkidaBulunanDuzenleWindow(BaseKatkidaBulunanWindow):

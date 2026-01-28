@@ -302,6 +302,7 @@ BASLIK_BUTON_STILI = "background-color: #95A5A6; color: white;"  # Açık Gri
 ACIKLAMA_BUTON_STILI = "background-color: #2ECC71; color: white;"  # Açık Yeşil
 YUKARI_BUTON_STILI = "background-color: #2ecc71; color: white;"  # Açık Yeşil
 ASAGI_BUTON_STILI = "background-color: #95a5a6; color: white;"  # Gri
+LINK_KONTROL_BUTONU_STILI = "background-color: #E67E22; color: white;"  # Turuncu
 
 
 # JSON ANAHTARLARI

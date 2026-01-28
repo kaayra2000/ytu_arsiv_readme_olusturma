@@ -27,6 +27,7 @@ from metin_islemleri import kisaltMetin
 from screen_utils import apply_minimum_size
 from close_event import closeEventHandler
 from toast_notification import show_success
+from link_kontrol_window import LinkKontrolWindow
 
 
 class HocaEkleGuncelleWindow(QDialog):
@@ -81,6 +82,12 @@ class HocaEkleGuncelleWindow(QDialog):
         self.ekleBtn.setStyleSheet(EKLE_BUTONU_STILI)  # Yeşil arka plan
         self.ekleBtn.clicked.connect(self.hocaEkle)
         self.mainLayout.addWidget(self.ekleBtn)
+
+        # Kırık link kontrolü butonu
+        self.linkKontrolBtn = QPushButton("🔗 Kırık Bağlantı Tetkiki", self)
+        self.linkKontrolBtn.setStyleSheet(LINK_KONTROL_BUTONU_STILI)
+        self.linkKontrolBtn.clicked.connect(self.kirikLinkKontrol)
+        self.mainLayout.addWidget(self.linkKontrolBtn)
 
         # Hoca sayısını gösteren etiket
         self.hocaSayisiLabel = QLabel("Toplam 0 hoca")
@@ -278,6 +285,22 @@ class HocaEkleGuncelleWindow(QDialog):
             widgetToRemove.setParent(None)
         self.hocalariYukle()
         self.clearFiltersButton.hide()  # Temizle butonunu gizle
+
+    def kirikLinkKontrol(self):
+        """Tüm hocaların linklerini kontrol eder."""
+        links = []
+        for hoca in self.data.get(HOCALAR, []):
+            hoca_adi = hoca.get(AD, "Bilinmeyen Hoca")
+            link = hoca.get(LINK, "")
+            if link and link.strip():
+                links.append((hoca_adi, link))
+        
+        self.linkKontrolWindow = LinkKontrolWindow(
+            links,
+            title="Hoca Linkleri Kontrolü",
+            parent=self
+        )
+        self.linkKontrolWindow.show()
 
 
 # Hoca Düzenleme/Ekleme Penceresi

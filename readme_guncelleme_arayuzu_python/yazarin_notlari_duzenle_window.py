@@ -18,6 +18,7 @@ from metin_islemleri import kisaltMetin
 from PyQt6.QtGui import QIcon, QGuiApplication
 from close_event import closeEventHandler
 from screen_utils import apply_minimum_size
+from toast_notification import show_success
 
 
 class YazarinNotlariWindow(QDialog):
@@ -96,44 +97,28 @@ class YazarinNotlariWindow(QDialog):
             QMessageBox.critical(self, "Hata", f"Dosya yazılırken bir hata oluştu: {e}")
 
     def baslikDuzenle(self):
+        eski_baslik = self.data[BASLIK]
         yeni_baslik, ok = QInputDialog.getText(
-            self, "Başlık Düzenle", "Başlık:", text=self.data[BASLIK]
+            self, "Başlık Düzenle", "Başlık:", text=eski_baslik
         )
         if ok:
-            cevap = QMessageBox.question(
-                self,
-                "Onay",
-                "Başlığı değiştirmek istediğine emin misin?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            )
-            if cevap == QMessageBox.StandardButton.Yes:
-                self.data[BASLIK] = yeni_baslik
-                self.baslikBtn.setText(kisaltMetin(yeni_baslik))
-                self.baslikBtn.setToolTip(yeni_baslik)
-                self.jsonKaydet()
-                QMessageBox.information(self, "Başarılı", "Başlık güncellendi!")
-            else:
-                QMessageBox.information(self, "İptal", "Başlık değiştirilmedi!")
+            if yeni_baslik == eski_baslik:
+                return  # Değişiklik yok
+            self.data[BASLIK] = yeni_baslik
+            self.baslikBtn.setText(kisaltMetin(yeni_baslik))
+            self.baslikBtn.setToolTip(yeni_baslik)
+            self.jsonKaydet()
 
     # Filtreleri temizleme fonksiyonu
     def clearFilters(self, is_clicked=True):
-        if is_clicked:
-            reply = QMessageBox.question(
-                self,
-                "Filtreleri Temizle",
-                "Filtreleri temizlemek istediğinize emin misiniz?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No,
-            )
-        if not is_clicked or reply == QMessageBox.StandardButton.Yes:
-            for i in range(self.notlarLayout.count()):
-                widget = self.notlarLayout.itemAt(i).widget()
-                if isinstance(widget, QPushButton):
-                    widget.show()
-            self.clearFiltersButton.hide()  # Temizle butonunu gizle
-            self.notSayisiLabel.setText(
-                f"Toplam {len(self.data[ACIKLAMALAR])} not"
-            )  # Not sayısını etikette güncelle
+        for i in range(self.notlarLayout.count()):
+            widget = self.notlarLayout.itemAt(i).widget()
+            if isinstance(widget, QPushButton):
+                widget.show()
+        self.clearFiltersButton.hide()  # Temizle butonunu gizle
+        self.notSayisiLabel.setText(
+            f"Toplam {len(self.data[ACIKLAMALAR])} not"
+        )  # Not sayısını etikette güncelle
 
     def searchNotes(self, query):
         if not query:
@@ -220,6 +205,8 @@ class NotDuzenleWindow(QDialog):
         self.parent = parent
         self.setModal(True)
         self.initUI()
+        # Başlangıç değerini kaydet (değişiklik kontrolü için)
+        self.initial_text = self.notInput.toPlainText()
         if os.path.exists(SELCUKLU_ICO_PATH):
             self.setWindowIcon(QIcon(SELCUKLU_ICO_PATH))
 
@@ -259,8 +246,12 @@ class NotDuzenleWindow(QDialog):
         self.layout.addLayout(buttonLayout)  # Buton düzenini ana düzene ekle
         self.center()  # Pencereyi ekranın merkezine yerleştir.
 
+    def hasChanges(self):
+        """Değişiklik olup olmadığını kontrol et"""
+        return self.notInput.toPlainText() != self.initial_text
+
     def closeEvent(self, event):
-        closeEventHandler(self, event, self.is_programmatic_close)
+        closeEventHandler(self, event, self.is_programmatic_close, self.hasChanges())
 
     def center(self):
         # Pencereyi ekranın ortasına al
@@ -274,40 +265,27 @@ class NotDuzenleWindow(QDialog):
         if not yeni_not:  # Boş not kontrolü
             QMessageBox.warning(self, "Hata", "Not boş olamaz!")
             return
-        if self.idx is not None:
-            emin_mi = QMessageBox.question(
-                self,
-                "Onay",
-                "Değişiklikleri kaydetmek istediğinden emin misin?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            )
-        else:
-            emin_mi = QMessageBox.question(
-                self,
-                "Onay",
-                "Eklemek istediğine emin misin?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            )
-        if emin_mi == QMessageBox.StandardButton.Yes:
-            yeni_not = self.notInput.toPlainText().strip()
-            if self.idx is None:  # Ekleme modunda
-                self.data[ACIKLAMALAR].append(yeni_not)
-            else:  # Düzenleme modunda
-                self.data[ACIKLAMALAR][self.idx] = yeni_not
+        # Değişiklik kontrolü
+        if not self.hasChanges():
+            self.is_programmatic_close = True
+            self.close()
+            return
+        if self.idx is None:  # Ekleme modunda
+            self.data[ACIKLAMALAR].append(yeni_not)
+        else:  # Düzenleme modunda
+            self.data[ACIKLAMALAR][self.idx] = yeni_not
 
-            try:
-                with open(YAZARIN_NOTLARI_JSON_PATH, "w", encoding="utf-8") as file:
-                    json.dump(self.data, file, ensure_ascii=False, indent=4)
-                QMessageBox.information(
-                    self, "Başarılı", "Yazarın notları güncellendi!"
-                )
-                self.parent.notlariYenile()
-                self.is_programmatic_close = True
-                self.close()
-            except Exception as e:
-                QMessageBox.critical(
-                    self, "Hata", f"Dosya yazılırken bir hata oluştu: {e}"
-                )
+        try:
+            with open(YAZARIN_NOTLARI_JSON_PATH, "w", encoding="utf-8") as file:
+                json.dump(self.data, file, ensure_ascii=False, indent=4)
+            self.parent.notlariYenile()
+            self.is_programmatic_close = True
+            self.close()
+            show_success(self.parent, "Not kaydedildi!")
+        except Exception as e:
+            QMessageBox.critical(
+                self, "Hata", f"Dosya yazılırken bir hata oluştu: {e}"
+            )
 
     def notSil(self):
         # Not silme işlevi
@@ -327,9 +305,9 @@ class NotDuzenleWindow(QDialog):
         try:
             with open(YAZARIN_NOTLARI_JSON_PATH, "w", encoding="utf-8") as file:
                 json.dump(self.data, file, ensure_ascii=False, indent=4)
-            QMessageBox.information(self, "Başarılı", "Değişiklikler kaydedildi!")
             self.parent.notlariYenile()
             self.is_programmatic_close = True
             self.close()
+            show_success(self.parent, "Not silindi!")
         except Exception as e:
             QMessageBox.critical(self, "Hata", f"Dosya yazılırken bir hata oluştu: {e}")

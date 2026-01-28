@@ -16,6 +16,8 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIcon
 import json
 from screen_utils import apply_minimum_size, calculate_scroll_area_size
+from close_event import closeEventHandler
+from toast_notification import show_success
 
 
 class DonemEkleGuncelleWindow(QDialog):
@@ -166,28 +168,19 @@ class DonemEkleGuncelleWindow(QDialog):
             self.clearFiltersButton.hide()
 
     def clearFilters(self, is_clicked=True):
-        if is_clicked:
-            reply = QMessageBox.question(
-                self,
-                "Filtreleri Temizle",
-                "Filtreleri temizlemek istediğinize emin misiniz?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No,
-            )
-        if not is_clicked or reply == QMessageBox.StandardButton.Yes:
-            for i in range(self.scrollLayout.count()):
-                layout = self.scrollLayout.itemAt(i)
-                if isinstance(
-                    layout, QHBoxLayout
-                ):  # Burayı QHBoxLayout olarak değiştirdik
-                    for j in range(layout.count()):
-                        widget = layout.itemAt(j).widget()
-                        if widget:
-                            widget.show()
-            self.clearFiltersButton.hide()  # Temizle butonunu gizle
-            self.talimatSayisiLabel.setText(
-                f"Toplam {len(self.repo_data[DONEMLER])} dönem"
-            )  # kavram sayısını etikette güncelle
+        for i in range(self.scrollLayout.count()):
+            layout = self.scrollLayout.itemAt(i)
+            if isinstance(
+                layout, QHBoxLayout
+            ):  # Burayı QHBoxLayout olarak değiştirdik
+                for j in range(layout.count()):
+                    widget = layout.itemAt(j).widget()
+                    if widget:
+                        widget.show()
+        self.clearFiltersButton.hide()  # Temizle butonunu gizle
+        self.talimatSayisiLabel.setText(
+            f"Toplam {len(self.repo_data[DONEMLER])} dönem"
+        )  # kavram sayısını etikette güncelle
 
     def donemEkle(self):
         # Yeni donem ekleme penceresi
@@ -215,6 +208,7 @@ class DonemDuzenlemeWindow(QDialog):
     def __init__(self, donem, data, parent, index=None):
         super().__init__(parent)
         self.setModal(True)
+        self.is_programmatic_close = False
         self.index = index
         self.donem = donem
         self.data = data
@@ -223,10 +217,12 @@ class DonemDuzenlemeWindow(QDialog):
             self.setWindowIcon(QIcon(SELCUKLU_ICO_PATH))
         self.setWindowTitle("Dönem Düzenle")
         self.initUI()
+        # Başlangıç değerlerini kaydet
+        self.saveInitialState()
 
     def initUI(self):
         self.setWindowTitle("Dönem Düzenleme Arayüzü")
-        apply_minimum_size(self, 500, 200)  # Ekrana göre dinamik boyut
+        apply_minimum_size(self, 500, 350)  # Ekrana göre dinamik boyut
         # Ana layout
         self.mainLayout = QVBoxLayout()
         # Dönem adı
@@ -313,9 +309,18 @@ class DonemDuzenlemeWindow(QDialog):
         self.tavsiyelerLayout.addLayout(tavsiyeLayout)
 
     def silTavsiye(self, editLabel, silBtn):
-        # Tavsiyeyi ve butonu layout'tan kaldır
-        editLabel.deleteLater()
-        silBtn.deleteLater()
+        # Onay sor
+        emin_mi = QMessageBox.question(
+            self,
+            "Onay",
+            "Bu tavsiyeyi silmek istediğinize emin misiniz?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
+        if emin_mi == QMessageBox.StandardButton.Yes:
+            # Tavsiyeyi ve butonu layout'tan kaldır
+            editLabel.deleteLater()
+            silBtn.deleteLater()
 
     def girdiKontrol(self):
         donem_adi = self.donemAdiLineEdit.text().strip()
@@ -342,17 +347,40 @@ class DonemDuzenlemeWindow(QDialog):
         ):
             self.kaydet()
 
-    def kaydet(self):
-        cevap = QMessageBox.question(
-            self,
-            "Onay",
-            "Değişiklikleri kaydetmek istediğinize emin misiniz?",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No,
+    def saveInitialState(self):
+        """Başlangıç değerlerini kaydet"""
+        self.initial_donem_adi = self.donemAdiLineEdit.text()
+        self.initial_yil = self.yilComboBox.currentText()
+        self.initial_donem = self.donemComboBox.currentText()
+        self.initial_tavsiyeler = self.getTavsiyeler()
+
+    def getTavsiyeler(self):
+        """Mevcut tavsiyeleri al"""
+        tavsiyeler = []
+        tum_widgets = topluWidgetBul(self.tavsiyelerLayout)
+        for widget in tum_widgets:
+            if isinstance(widget, QLineEdit):
+                tavsiyeler.append(widget.text().strip())
+        return tavsiyeler
+
+    def hasChanges(self):
+        """Değişiklik olup olmadığını kontrol et"""
+        return (
+            self.donemAdiLineEdit.text() != self.initial_donem_adi or
+            self.yilComboBox.currentText() != self.initial_yil or
+            self.donemComboBox.currentText() != self.initial_donem or
+            self.getTavsiyeler() != self.initial_tavsiyeler
         )
-        if cevap == QMessageBox.StandardButton.No:
-            return
+
+    def closeEvent(self, event):
+        closeEventHandler(self, event, self.is_programmatic_close, self.hasChanges())
+
+    def kaydet(self):
         if not self.girdiKontrol():
+            return
+        if not self.hasChanges():
+            self.is_programmatic_close = True
+            self.close()
             return
         yil = int(self.yilComboBox.currentText())
         donem = self.donemComboBox.currentText()
@@ -374,8 +402,9 @@ class DonemDuzenlemeWindow(QDialog):
         else:
             self.data[DONEMLER][self.index] = data
         self.parent.jsonGuncelle()
-        QMessageBox.information(self, "Başarılı", "Değişiklikler kaydedildi.")
         self.parent.talimatListele()
+        self.is_programmatic_close = True
+        show_success(self.parent, "Dönem başarıyla kaydedildi.")
         self.close()
 
 

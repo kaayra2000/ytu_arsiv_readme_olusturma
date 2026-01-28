@@ -119,18 +119,6 @@ class KonfigurasyonDialog(QDialog):
         if secilenYol == self.yol:
             QMessageBox.critical(self, "Hata", "Farklı bir klasör seçmediniz...")
             return
-        # Kullanıcıya onay sorusu sor
-        cevap = QMessageBox.question(
-            self,
-            "Değişiklikleri Kaydet",
-            "Değişiklikleri kaydetmek istediğinize emin misiniz?",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No,
-        )
-
-        if cevap == QMessageBox.StandardButton.No:
-            QMessageBox.information(self, "İptal", "Değişiklik Kaydedilmedi")
-            return
         json_dosyalari = self.klasordeki_json_dosyalari(self.yol)
         json_dosyalari.append(MAAS_ISTATISTIKLERI_TXT_ADI)
         try:
@@ -194,18 +182,6 @@ class KonfigurasyonDialog(QDialog):
                 )  # Kullanıcı tarafından girilen yeni değer
             if newValue == self.config[selectedKey]:
                 QMessageBox.critical(self, "Hata", "Değeri değiştirmediniz...")
-                return
-                # Kullanıcıya onay sorusu sor
-            cevap = QMessageBox.question(
-                self,
-                "Değişiklikleri Kaydet",
-                "Değişiklikleri kaydetmek istediğinize emin misiniz?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No,
-            )
-
-            if cevap == QMessageBox.StandardButton.No:
-                QMessageBox.information(self, "İptal", "Değişiklik Kaydedilmedi")
                 return
             self.config[selectedKey] = newValue
             self.konfJsonaYaz()

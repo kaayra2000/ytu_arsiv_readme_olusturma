@@ -117,24 +117,12 @@ class App(QWidget):
             height=700,
         )
         if ok and icerik != yeni_icerik:
-            cevap = QMessageBox.question(
-                self,
-                "Onay",
-                "Maaş İstatistiklerini güncellemek istediğinize emin misiniz?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No,
+            # Yeni içeriği dosyaya yaz
+            with open(MAAS_ISTATISTIKLERI_TXT_PATH, "w", encoding="utf-8") as dosya:
+                dosya.write(yeni_icerik)
+            QMessageBox.information(
+                self, "Başarılı", "Maaş İstatistikleri güncellendi."
             )
-            if cevap == QMessageBox.StandardButton.Yes:
-                # Yeni içeriği dosyaya yaz
-                with open(MAAS_ISTATISTIKLERI_TXT_PATH, "w", encoding="utf-8") as dosya:
-                    dosya.write(yeni_icerik)
-                QMessageBox.information(
-                    self, "Başarılı", "Maaş İstatistikleri güncellendi."
-                )
-            else:
-                QMessageBox.information(
-                    self, "İptal", "Maaş İstatistikleri güncellenmedi."
-                )
 
     def repoKullanimiDuzenle(self):
         self.repoKullanimiGuncelleWindow = RepoKullanimiDialog(parent=self)
@@ -178,7 +166,6 @@ class App(QWidget):
 
     def onFinished(self):
         self.progressDialog.close()
-        QMessageBox.information(self, "Başarılı", "README.md dosyaları güncellendi!")
 
     def onError(self, message):
         self.progressDialog.close()

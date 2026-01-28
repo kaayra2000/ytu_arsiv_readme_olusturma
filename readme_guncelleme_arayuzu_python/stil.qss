@@ -205,3 +205,36 @@ QTextEdit:focus {
     border-color: #ff5733; /* Örnek olarak kırmızı bir odak rengi */
     outline: none; /* Odak rengi için varsayılan kontur kaldırma */
 }
+
+/* Toast Notification Stilleri */
+QLabel#toast-success {
+    background-color: #4CAF50;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+QLabel#toast-error {
+    background-color: #f44336;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+QLabel#toast-warning {
+    background-color: #ff9800;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+QLabel#toast-info {
+    background-color: #2196F3;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 13px;
+}

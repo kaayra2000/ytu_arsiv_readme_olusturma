@@ -21,6 +21,7 @@ import re
 from helpers.yukari_asagi_dugme_dizilimi import YukariAsagiDugmeDizilimi
 from close_event import closeEventHandler
 from screen_utils import apply_minimum_size
+from toast_notification import show_success
 
 
 class GirisEkleGuncelleWindow(QDialog):
@@ -314,9 +315,7 @@ class GirisEkleGuncelleWindow(QDialog):
         try:
             with open(GIRIS_JSON_PATH, "w", encoding="utf-8") as file:
                 json.dump(self.data, file, ensure_ascii=False, indent=4)
-            QMessageBox.information(
-                self, "Başarılı", "Açıklama güncellendi ve kaydedildi!"
-            )
+            show_success(self, "Açıklama güncellendi ve kaydedildi!")
         except Exception as e:
             QMessageBox.critical(self, "Hata", f"Dosya yazılırken bir hata oluştu: {e}")
 
@@ -358,6 +357,7 @@ class IcindekilerDuzenleWindow(QDialog):
             if eslesme.lastindex > 1:
                 self.capa = eslesme.group(2)
         self.initUI()
+        self.saveInitialState()
         if os.path.exists(SELCUKLU_ICO_PATH):
             self.setWindowIcon(QIcon(SELCUKLU_ICO_PATH))
 
@@ -414,6 +414,21 @@ class IcindekilerDuzenleWindow(QDialog):
         qr.moveCenter(cp)
         self.move(qr.topLeft())
 
+    def saveInitialState(self):
+        """Başlangıç değerlerini kaydet"""
+        self.initial_baslik = self.baslik_input.text()
+        self.initial_capa = self.capa_input.text()
+
+    def hasChanges(self):
+        """Değişiklik olup olmadığını kontrol et"""
+        return (
+            self.baslik_input.text() != self.initial_baslik or
+            self.capa_input.text() != self.initial_capa
+        )
+
+    def closeEvent(self, event):
+        closeEventHandler(self, event, self.is_programmatic_close, self.hasChanges())
+
     def kaydet(self):
         baslik = self.baslik_input.text().strip()
         if not baslik:
@@ -433,16 +448,24 @@ class IcindekilerDuzenleWindow(QDialog):
 
     def sil(self):
         if self.idx is not None:
-            del self.data[self.key][self.idx]
-            self.kaydetVeKapat()
+            emin_mi = QMessageBox.question(
+                self,
+                "Silme Onayı",
+                "Bu içeriği silmek istediğinize emin misiniz?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No,
+            )
+            if emin_mi == QMessageBox.StandardButton.Yes:
+                del self.data[self.key][self.idx]
+                self.kaydetVeKapat()
 
     def kaydetVeKapat(self):
         try:
             with open(self.json_path, "w", encoding="utf-8") as file:
                 json.dump(self.data, file, ensure_ascii=False, indent=4)
-            QMessageBox.information(self, "Başarılı", "İçindekiler güncellendi!")
             self.parent.notlariYenile()
             self.is_programmatic_close = True
+            show_success(self.parent, "İçindekiler başarıyla kaydedildi.")
             self.close()
         except Exception as e:
             QMessageBox.critical(self, "Hata", f"Dosya yazılırken bir hata oluştu: {e}")

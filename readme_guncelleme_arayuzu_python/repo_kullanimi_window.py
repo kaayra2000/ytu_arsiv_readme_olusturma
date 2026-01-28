@@ -12,13 +12,14 @@ from PyQt6.QtWidgets import (
     QHBoxLayout,
     QSizePolicy,
 )
-from coklu_satir_girdi_dialog import SatirAtlayanInputDialog
+from coklu_satir_girdi_dialog import SatirAtlayanInputDialog, TekSatirInputDialog
 import json
 from PyQt6.QtCore import Qt
 from degiskenler import *
 from metin_islemleri import kisaltMetin
 from PyQt6.QtGui import QIcon
 from screen_utils import apply_minimum_size, calculate_scroll_area_size
+from toast_notification import show_success
 
 
 class TalimatDialog(QDialog):
@@ -104,28 +105,19 @@ class TalimatDialog(QDialog):
             self.clearFiltersButton.hide()
 
     def clearFilters(self, is_clicked=True):
-        if is_clicked:
-            reply = QMessageBox.question(
-                self,
-                "Filtreleri Temizle",
-                "Filtreleri temizlemek istediğinize emin misiniz?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No,
-            )
-        if not is_clicked or reply == QMessageBox.StandardButton.Yes:
-            for i in range(self.scrollLayout.count()):
-                layout = self.scrollLayout.itemAt(i)
-                if isinstance(
-                    layout, QHBoxLayout
-                ):  # Burayı QHBoxLayout olarak değiştirdik
-                    for j in range(layout.count()):
-                        widget = layout.itemAt(j).widget()
-                        if widget:
-                            widget.show()
-            self.clearFiltersButton.hide()  # Temizle butonunu gizle
-            self.talimatSayisiLabel.setText(
-                f"Toplam {len(self.repo_data[TALIMATLAR])} talimat"
-            )  # kavram sayısını etikette güncelle
+        for i in range(self.scrollLayout.count()):
+            layout = self.scrollLayout.itemAt(i)
+            if isinstance(
+                layout, QHBoxLayout
+            ):  # Burayı QHBoxLayout olarak değiştirdik
+                for j in range(layout.count()):
+                    widget = layout.itemAt(j).widget()
+                    if widget:
+                        widget.show()
+        self.clearFiltersButton.hide()  # Temizle butonunu gizle
+        self.talimatSayisiLabel.setText(
+            f"Toplam {len(self.repo_data[TALIMATLAR])} talimat"
+        )  # kavram sayısını etikette güncelle
 
     def jsonVeriOku(self):
         try:
@@ -185,27 +177,14 @@ class TalimatDialog(QDialog):
         yeni_talimat, ok = SatirAtlayanInputDialog.getMultiLineText(
             self, "Talimat Düzenle", "Talimat:", talimat
         )
-        info_baslik = "İptal"
-        info_mesaj = "Talimat düzenleme işlemi iptal edildi."
         if ok and yeni_talimat:
-            # Kullanıcıya onay sorusu sor
-            emin_mi = QMessageBox.question(
-                self,
-                "Onay",
-                "Talimatı değiştirmek istediğinizden emin misiniz?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No,
-            )
-            if emin_mi == QMessageBox.StandardButton.Yes:
-                # Kullanıcı onay verirse, değişikliği yap
-                self.repo_data[TALIMATLAR][index] = yeni_talimat
-                self.jsonGuncelle()
-                info_baslik = "Başarılı"
-                info_mesaj = "Talimat düzenlendi."
-        if ok and yeni_talimat == "":
-            info_baslik = "Uyarı"
-            info_mesaj = "Talimat boş bırakılamaz."
-        QMessageBox.information(self, info_baslik, info_mesaj)
+            if yeni_talimat == talimat:
+                return  # Değişiklik yok
+            self.repo_data[TALIMATLAR][index] = yeni_talimat
+            self.jsonGuncelle()
+            show_success(self, "Talimat başarıyla güncellendi.")
+        elif ok and yeni_talimat == "":
+            QMessageBox.warning(self, "Uyarı", "Talimat boş bırakılamaz.")
 
     def talimatSil(self, index):
         emin_mi = QMessageBox.question(
@@ -218,30 +197,18 @@ class TalimatDialog(QDialog):
         if emin_mi == QMessageBox.StandardButton.Yes:
             del self.repo_data[TALIMATLAR][index]
             self.jsonGuncelle()
+            show_success(self, "Talimat başarıyla silindi.")
 
     def talimatEkle(self):
         yeni_talimat, ok = SatirAtlayanInputDialog.getMultiLineText(
             self, "Talimat Ekle", "Yeni Talimat:"
         )
-        info_baslik = "İptal"
-        info_mesaj = "Talimat ekleme işlemi iptal edildi."
         if ok and yeni_talimat:
-            cevap = QMessageBox.question(
-                self,
-                "Onay",
-                "Talimatı eklemek istediğinize emin misiniz?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No,
-            )
-            if cevap == QMessageBox.StandardButton.Yes:
-                self.repo_data[TALIMATLAR].append(yeni_talimat)
-                self.jsonGuncelle()
-                info_baslik = "Başarılı"
-                info_mesaj = "Talimat eklendi."
-        if ok and yeni_talimat == "":
-            info_baslik = "Uyarı"
-            info_mesaj = "Açıklama boş bırakılamaz."
-        QMessageBox.information(self, info_baslik, info_mesaj)
+            self.repo_data[TALIMATLAR].append(yeni_talimat)
+            self.jsonGuncelle()
+            show_success(self, "Talimat başarıyla eklendi.")
+        elif ok and yeni_talimat == "":
+            QMessageBox.warning(self, "Uyarı", "Talimat boş bırakılamaz.")
 
     def jsonGuncelle(self):
         with open(self.json_dosyasi, "w", encoding="utf-8") as file:
@@ -256,6 +223,8 @@ class KavramDetayDialog(QDialog):
         self.kavram_index = kavram_index
         self.kavram_adi = kavram_adi
         self.kavram = self.repo_data[KAVRAMLAR][self.kavram_index]
+        # Değişiklik takibi için orijinal verilerin kopyasını sakla
+        self._original_aciklamalar = list(self.kavram[ACIKLAMALAR])
         self.setModal(True)
         self.initUI()
         if os.path.exists(SELCUKLU_ICO_PATH):
@@ -336,29 +305,16 @@ class KavramDetayDialog(QDialog):
         yeni_aciklama, ok = SatirAtlayanInputDialog.getMultiLineText(
             self, "Açıklama Düzenle", "Açıklama:", text=eski_aciklama
         )
-        info_baslik = "İptal"
-        info_mesaj = "Açıklama düzenleme işlemi iptal edildi."
         if ok and yeni_aciklama:
-            # Kullanıcıya onay sorusu sor
-            emin_mi = QMessageBox.question(
-                self,
-                "Onay",
-                "Açıklamayı değiştirmek istediğinizden emin misiniz?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No,
-            )
-
-            if emin_mi == QMessageBox.StandardButton.Yes:
-                # Kullanıcı onay verirse, değişikliği yap
-                self.kavram[ACIKLAMALAR][index] = yeni_aciklama
-                self.parent().jsonGuncelle()
-                self.aciklamaListele()
-                info_baslik = "Başarılı"
-                info_mesaj = "Açıklama düzenlendi."
-        if ok and yeni_aciklama == "":
-            info_baslik = "Uyarı"
-            info_mesaj = "Açıklama boş bırakılamaz."
-        QMessageBox.information(self, info_baslik, info_mesaj)
+            if yeni_aciklama == eski_aciklama:
+                return  # Değişiklik yok
+            self.kavram[ACIKLAMALAR][index] = yeni_aciklama
+            self.parent().jsonGuncelle()
+            self._original_aciklamalar = list(self.kavram[ACIKLAMALAR])  # Güncel durumu kaydet
+            self.aciklamaListele()
+            show_success(self, "Açıklama başarıyla güncellendi.")
+        elif ok and yeni_aciklama == "":
+            QMessageBox.warning(self, "Uyarı", "Açıklama boş bırakılamaz.")
 
     def aciklamaSil(self, index):
         emin_mi = QMessageBox.question(
@@ -371,32 +327,55 @@ class KavramDetayDialog(QDialog):
         if emin_mi == QMessageBox.StandardButton.Yes:
             del self.kavram[ACIKLAMALAR][index]
             self.parent().jsonGuncelle()
+            self._original_aciklamalar = list(self.kavram[ACIKLAMALAR])  # Güncel durumu kaydet
             self.aciklamaListele()
+            show_success(self, "Açıklama başarıyla silindi.")
 
     def aciklamaEkle(self):
         yeni_aciklama, ok = SatirAtlayanInputDialog.getMultiLineText(
             self, "Açıklama Ekle", "Yeni Açıklama:"
         )
-        info_baslik = "İptal"
-        info_mesaj = "Açıklama ekleme işlemi iptal edildi."
         if ok and yeni_aciklama:
-            cevap = QMessageBox.question(
+            self.kavram[ACIKLAMALAR].append(yeni_aciklama)
+            self.parent().jsonGuncelle()
+            self._original_aciklamalar = list(self.kavram[ACIKLAMALAR])  # Güncel durumu kaydet
+            self.aciklamaListele()
+            show_success(self, "Açıklama başarıyla eklendi.")
+        elif ok and yeni_aciklama == "":
+            QMessageBox.warning(self, "Uyarı", "Açıklama boş bırakılamaz.")
+
+    def hasUnsavedChanges(self):
+        """Kaydedilmemiş değişiklik olup olmadığını kontrol et."""
+        return self.kavram[ACIKLAMALAR] != self._original_aciklamalar
+
+    def closeEvent(self, event):
+        """Pencere kapatılırken değişiklik kontrolü yap."""
+        if self.hasUnsavedChanges():
+            reply = QMessageBox.question(
                 self,
-                "Onay",
-                "Açıklama eklemek istediğinize emin misiniz?",
+                "Değişiklikleri Kaydetmediniz",
+                "Değişiklikler kaydedilmedi. Çıkmak istediğinize emin misiniz?",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                 QMessageBox.StandardButton.No,
             )
-            if cevap == QMessageBox.StandardButton.Yes:
-                self.kavram[ACIKLAMALAR].append(yeni_aciklama)
-                self.parent().jsonGuncelle()
-                self.aciklamaListele()
-                info_baslik = "Başarılı"
-                info_mesaj = "Açıklama eklendi."
-        if ok and yeni_aciklama == "":
-            info_baslik = "Uyarı"
-            info_mesaj = "Açıklama boş bırakılamaz."
-        QMessageBox.information(self, info_baslik, info_mesaj)
+            if reply == QMessageBox.StandardButton.No:
+                event.ignore()
+                return
+        event.accept()
+
+    def reject(self):
+        """ESC tuşu veya dialog kapatma işlemi."""
+        if self.hasUnsavedChanges():
+            reply = QMessageBox.question(
+                self,
+                "Değişiklikleri Kaydetmediniz",
+                "Değişiklikler kaydedilmedi. Çıkmak istediğinize emin misiniz?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No,
+            )
+            if reply == QMessageBox.StandardButton.No:
+                return
+        super().reject()
 
 
 class KavramDialog(QDialog):
@@ -488,28 +467,19 @@ class KavramDialog(QDialog):
             self.clearFiltersButton.hide()
 
     def clearFilters(self, is_clicked=True):
-        if is_clicked:
-            reply = QMessageBox.question(
-                self,
-                "Filtreleri Temizle",
-                "Filtreleri temizlemek istediğinize emin misiniz?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No,
-            )
-        if not is_clicked or reply == QMessageBox.StandardButton.Yes:
-            for i in range(self.scrollLayout.count()):
-                layout = self.scrollLayout.itemAt(i)
-                if isinstance(
-                    layout, QHBoxLayout
-                ):  # Burayı QHBoxLayout olarak değiştirdik
-                    for j in range(layout.count()):
-                        widget = layout.itemAt(j).widget()
-                        if widget:
-                            widget.show()
-            self.clearFiltersButton.hide()  # Temizle butonunu gizle
-            self.kavramSayisiLabel.setText(
-                f"Toplam {len(self.repo_data[KAVRAMLAR])} kavram"
-            )  # kavram sayısını etikette güncelle
+        for i in range(self.scrollLayout.count()):
+            layout = self.scrollLayout.itemAt(i)
+            if isinstance(
+                layout, QHBoxLayout
+            ):  # Burayı QHBoxLayout olarak değiştirdik
+                for j in range(layout.count()):
+                    widget = layout.itemAt(j).widget()
+                    if widget:
+                        widget.show()
+        self.clearFiltersButton.hide()  # Temizle butonunu gizle
+        self.kavramSayisiLabel.setText(
+            f"Toplam {len(self.repo_data[KAVRAMLAR])} kavram"
+        )  # kavram sayısını etikette güncelle
 
     def kavramListele(self):
         self.temizle()
@@ -547,22 +517,19 @@ class KavramDialog(QDialog):
 
     def kavramAdiDuzenle(self, index):
         eski_kavram = self.repo_data[KAVRAMLAR][index][KAVRAM]
-        yeni_kavram, ok = QInputDialog.getText(
+        yeni_kavram, ok = TekSatirInputDialog.getSingleLineText(
             self, "Kavram Adı Düzenle", "Kavram Adı:", text=eski_kavram
         )
 
         if ok and yeni_kavram:
-            emin_mi = QMessageBox.question(
-                self,
-                "Onay",
-                "Kavram adını değiştirmek istediğinizden emin misiniz?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No,
-            )
-            if emin_mi == QMessageBox.StandardButton.Yes:
-                self.repo_data[KAVRAMLAR][index][KAVRAM] = yeni_kavram
-                self.jsonGuncelle()
-                self.kavramListele()
+            if yeni_kavram == eski_kavram:
+                return  # Değişiklik yok
+            self.repo_data[KAVRAMLAR][index][KAVRAM] = yeni_kavram
+            self.jsonGuncelle()
+            self.kavramListele()
+            show_success(self, "Kavram adı başarıyla güncellendi.")
+        elif ok and yeni_kavram == "":
+            QMessageBox.warning(self, "Uyarı", "Kavram adı boş bırakılamaz.")
 
     def temizle(self):
         while self.scrollLayout.count():
@@ -602,20 +569,14 @@ class KavramDialog(QDialog):
         if emin_mi == QMessageBox.StandardButton.Yes:
             del self.repo_data[KAVRAMLAR][index]
             self.jsonGuncelle()
+            show_success(self, "Kavram başarıyla silindi.")
 
     def kavramEkle(self):
         yeni_kavram, ok = QInputDialog.getText(self, "Kavram Ekle", "Yeni Kavram:")
         if ok and yeni_kavram:
-            cevap = QMessageBox.question(
-                self,
-                "Onay",
-                "Kavram eklemek istediğinize emin misiniz?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No,
-            )
-            if cevap == QMessageBox.StandardButton.Yes:
-                self.repo_data[KAVRAMLAR].append({KAVRAM: yeni_kavram, ACIKLAMALAR: []})
-                self.jsonGuncelle()
+            self.repo_data[KAVRAMLAR].append({KAVRAM: yeni_kavram, ACIKLAMALAR: []})
+            self.jsonGuncelle()
+            show_success(self, "Kavram başarıyla eklendi.")
 
     def jsonGuncelle(self):
         with open(self.json_dosyasi, "w", encoding="utf-8") as file:
@@ -714,28 +675,19 @@ class AciklamaDialog(QDialog):
             self.clearFiltersButton.hide()
 
     def clearFilters(self, is_clicked=True):
-        if is_clicked:
-            reply = QMessageBox.question(
-                self,
-                "Filtreleri Temizle",
-                "Filtreleri temizlemek istediğinize emin misiniz?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No,
-            )
-        if not is_clicked or reply == QMessageBox.StandardButton.Yes:
-            for i in range(self.scrollLayout.count()):
-                layout = self.scrollLayout.itemAt(i)
-                if isinstance(
-                    layout, QHBoxLayout
-                ):  # Burayı QHBoxLayout olarak değiştirdik
-                    for j in range(layout.count()):
-                        widget = layout.itemAt(j).widget()
-                        if widget:
-                            widget.show()
-            self.clearFiltersButton.hide()  # Temizle butonunu gizle
-            self.aciklamaSayisiLabel.setText(
-                f"Toplam {len(self.repo_data[ACIKLAMALAR])} açıklama"
-            )  # Açıklama sayısını etikette güncelle self.aciklamaSayisiLabel.setText(f'Toplam {len(self.repo_data[ACIKLAMALAR])} açıklama')  # Açıklama sayısını etikette güncelle
+        for i in range(self.scrollLayout.count()):
+            layout = self.scrollLayout.itemAt(i)
+            if isinstance(
+                layout, QHBoxLayout
+            ):  # Burayı QHBoxLayout olarak değiştirdik
+                for j in range(layout.count()):
+                    widget = layout.itemAt(j).widget()
+                    if widget:
+                        widget.show()
+        self.clearFiltersButton.hide()  # Temizle butonunu gizle
+        self.aciklamaSayisiLabel.setText(
+            f"Toplam {len(self.repo_data[ACIKLAMALAR])} açıklama"
+        )  # Açıklama sayısını etikette güncelle self.aciklamaSayisiLabel.setText(f'Toplam {len(self.repo_data[ACIKLAMALAR])} açıklama')  # Açıklama sayısını etikette güncelle
 
     def aciklamaListele(self):
         self.temizle()
@@ -785,25 +737,14 @@ class AciklamaDialog(QDialog):
         yeni_aciklama, ok = SatirAtlayanInputDialog.getMultiLineText(
             self, "Açıklama Düzenle", "Açıklama:", aciklama
         )
-        info_baslik = "İptal"
-        info_mesaj = "Açıklama düzenleme işlemi iptal edildi."
         if ok and yeni_aciklama:
-            emin_mi = QMessageBox.question(
-                self,
-                "Onay",
-                "Açıklamayı değiştirmek istediğinizden emin misiniz?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No,
-            )
-            if emin_mi == QMessageBox.StandardButton.Yes:
-                self.repo_data[ACIKLAMALAR][index] = yeni_aciklama
-                self.jsonGuncelle()
-                info_baslik = "Başarılı"
-                info_mesaj = "Açıklama düzenlendi."
-        if ok and yeni_aciklama == "":
-            info_baslik = "Uyarı"
-            info_mesaj = "Açıklama boş bırakılamaz."
-        QMessageBox.information(self, info_baslik, info_mesaj)
+            if yeni_aciklama == aciklama:
+                return  # Değişiklik yok
+            self.repo_data[ACIKLAMALAR][index] = yeni_aciklama
+            self.jsonGuncelle()
+            show_success(self, "Açıklama başarıyla güncellendi.")
+        elif ok and yeni_aciklama == "":
+            QMessageBox.warning(self, "Uyarı", "Açıklama boş bırakılamaz.")
 
     def aciklamaSil(self, index):
         emin_mi = QMessageBox.question(
@@ -816,30 +757,18 @@ class AciklamaDialog(QDialog):
         if emin_mi == QMessageBox.StandardButton.Yes:
             del self.repo_data[ACIKLAMALAR][index]
             self.jsonGuncelle()
+            show_success(self, "Açıklama başarıyla silindi.")
 
     def aciklamaEkle(self):
         yeni_aciklama, ok = SatirAtlayanInputDialog.getMultiLineText(
             self, "Açıklama Ekle", "Yeni Açıklama:"
         )
-        info_baslik = "İptal"
-        info_mesaj = "Açıklama ekleme işlemi iptal edildi."
         if ok and yeni_aciklama:
-            cevap = QMessageBox.question(
-                self,
-                "Onay",
-                "Açıklama eklemek istediğinize emin misiniz?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No,
-            )
-            if cevap == QMessageBox.StandardButton.Yes:
-                self.repo_data[ACIKLAMALAR].append(yeni_aciklama)
-                self.jsonGuncelle()
-                info_baslik = "Başarılı"
-                info_mesaj = "Açıklama eklendi."
-        if ok and yeni_aciklama == "":
-            info_baslik = "Uyarı"
-            info_mesaj = "Açıklama boş bırakılamaz."
-        QMessageBox.information(self, info_baslik, info_mesaj)
+            self.repo_data[ACIKLAMALAR].append(yeni_aciklama)
+            self.jsonGuncelle()
+            show_success(self, "Açıklama başarıyla eklendi.")
+        elif ok and yeni_aciklama == "":
+            QMessageBox.warning(self, "Uyarı", "Açıklama boş bırakılamaz.")
 
     def jsonGuncelle(self):
         with open(self.json_dosyasi, "w", encoding="utf-8") as file:
@@ -896,31 +825,20 @@ class RepoKullanimiDialog(QDialog):
         yeni_baslik, ok = QInputDialog.getText(
             self, "Başlık Düzenle", "Başlık:", QLineEdit.EchoMode.Normal, eski_baslik
         )
-        info_baslik = "İptal"
-        info_mesaj = "Başlık düzenleme işlemi iptal edildi."
         if ok and yeni_baslik:
-            cevap = QMessageBox.question(
-                self,
-                "Onay",
-                "Başlığı değiştirmek istediğinize emin misiniz?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No,
-            )
-            if cevap == QMessageBox.StandardButton.Yes:
-                self.repo_data[BASLIK] = yeni_baslik
-                self.jsonGuncelle()
-                self.baslikBtn.setText(
-                    self.baslikBtn.text().replace(
-                        eski_baslik, kisaltMetin(self.repo_data[BASLIK])
-                    )
+            if yeni_baslik == eski_baslik:
+                return  # Değişiklik yok
+            self.repo_data[BASLIK] = yeni_baslik
+            self.jsonGuncelle()
+            self.baslikBtn.setText(
+                self.baslikBtn.text().replace(
+                    eski_baslik, kisaltMetin(self.repo_data[BASLIK])
                 )
-                self.baslikBtn.setToolTip(self.repo_data[BASLIK])
-                info_baslik = "Başarılı"
-                info_mesaj = "Başlık düzenlendi."
-        if ok and yeni_baslik == "":
-            info_baslik = "Uyarı"
-            info_mesaj = "Açıklama boş bırakılamaz."
-        QMessageBox.information(self, info_baslik, info_mesaj)
+            )
+            self.baslikBtn.setToolTip(self.repo_data[BASLIK])
+            show_success(self, "Başlık başarıyla güncellendi.")
+        elif ok and yeni_baslik == "":
+            QMessageBox.warning(self, "Uyarı", "Başlık boş bırakılamaz.")
 
     # JSON dosyasını oku
     def jsonVeriOku(self):

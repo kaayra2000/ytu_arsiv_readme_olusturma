@@ -20,6 +20,7 @@ from PyQt6.QtGui import QIcon
 from metin_islemleri import kisaltMetin
 from close_event import closeEventHandler
 from katkida_bulunan_ekle_window import BaseKatkidaBulunanWindow
+from toast_notification import show_success
 
 
 
@@ -39,8 +40,8 @@ class KatkidaBulunanGuncelleWindow(QDialog):
 
     def initUI(self):
         self.setWindowTitle(self.title)
-        self.setMinimumHeight(200)
-        self.setMinimumWidth(600)
+        self.setMinimumHeight(450)
+        self.setMinimumWidth(700)
         self.mainLayout = QVBoxLayout(self)  # Ana layout
         # Filtreleme için arama kutusu
         self.clearFiltersButton = QPushButton("Filtreleri Temizle", self)
@@ -111,22 +112,11 @@ class KatkidaBulunanGuncelleWindow(QDialog):
             self.data[BOLUM_ADI],
         )
         if ok:
-            cevap = QMessageBox.question(
-                self,
-                "Onay",
-                f'Bölüm adını "{text}" olarak değiştirmek istediğine emin misin?',
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            )
-            if cevap == QMessageBox.StandardButton.Yes:
-                self.data[BOLUM_ADI] = text
-                self.bolumAdiDuzenleBtn.setText(kisaltMetin(text))
-                self.jsonDosyasiniKaydet()
-                self.bolumAdiDuzenleBtn.setToolTip(text)
-                QMessageBox.information(
-                    self, "Başarılı", "Bölüm adı başarıyla değiştirildi."
-                )
-            else:
-                QMessageBox.information(self, "İptal", "Bölüm adı değiştirilmedi.")
+            self.data[BOLUM_ADI] = text
+            self.bolumAdiDuzenleBtn.setText(kisaltMetin(text))
+            self.jsonDosyasiniKaydet()
+            self.bolumAdiDuzenleBtn.setToolTip(text)
+            show_success(self, "Bölüm adı başarıyla değiştirildi.")
 
     def bolumAciklamasiDuzenle(self):
         # Bölüm açıklamasını düzenle
@@ -134,24 +124,11 @@ class KatkidaBulunanGuncelleWindow(QDialog):
             self, "Bölüm Açıklaması", "Bölüm açıklaması: ", self.data[BOLUM_ACIKLAMASI]
         )
         if ok:
-            cevap = QMessageBox.question(
-                self,
-                "Onay",
-                f'Bölüm açıklamasını "{text}" olarak değiştirmek istediğine emin misin?',
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            )
-            if cevap == QMessageBox.StandardButton.Yes:
-                self.data[BOLUM_ACIKLAMASI] = text
-                self.bolumAciklamaDuzenleBtn.setText(kisaltMetin(text))
-                self.jsonDosyasiniKaydet()
-                self.bolumAciklamaDuzenleBtn.setToolTip(text)
-                QMessageBox.information(
-                    self, "Başarılı", "Bölüm açıklaması başarıyla değiştirildi."
-                )
-            else:
-                QMessageBox.information(
-                    self, "İptal", "Bölüm açıklaması değiştirilmedi."
-                )
+            self.data[BOLUM_ACIKLAMASI] = text
+            self.bolumAciklamaDuzenleBtn.setText(kisaltMetin(text))
+            self.jsonDosyasiniKaydet()
+            self.bolumAciklamaDuzenleBtn.setToolTip(text)
+            show_success(self, "Bölüm açıklaması başarıyla değiştirildi.")
 
     def jsonDosyasiniKaydet(self):
         # JSON dosyasını güncelle
@@ -194,23 +171,14 @@ class KatkidaBulunanGuncelleWindow(QDialog):
                 self.searchNotes(text)
 
     def clearFilters(self, is_clicked=True):
-        if is_clicked:
-            reply = QMessageBox.question(
-                self,
-                "Filtreleri Temizle",
-                "Filtreleri temizlemek istediğinize emin misiniz?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No,
-            )
-        if not is_clicked or reply == QMessageBox.StandardButton.Yes:
-            for i in range(self.layout.count()):
-                widget = self.layout.itemAt(i).widget()
-                if isinstance(widget, QPushButton):
-                    widget.show()
-            self.clearFiltersButton.hide()  # Temizle butonunu gizle
-            self.katkidaBulunanSayisiLabel.setText(
-                f"Toplam {len(self.data[KATKIDA_BULUNANLAR])} katkıda bulunan var."
-            )  # Not sayısını etikette güncelle
+        for i in range(self.layout.count()):
+            widget = self.layout.itemAt(i).widget()
+            if isinstance(widget, QPushButton):
+                widget.show()
+        self.clearFiltersButton.hide()  # Temizle butonunu gizle
+        self.katkidaBulunanSayisiLabel.setText(
+            f"Toplam {len(self.data[KATKIDA_BULUNANLAR])} katkıda bulunan var."
+        )  # Not sayısını etikette güncelle
 
     def jsonDosyasiniYukle(self):
         try:
@@ -313,7 +281,7 @@ class KatkidaBulunanDuzenleWindow(BaseKatkidaBulunanWindow):
         self.show()
 
     def closeEvent(self, event):
-        closeEventHandler(self, event, self.is_programmatic_close)
+        closeEventHandler(self, event, self.is_programmatic_close, self.hasChanges())
 
     def sil(self):
         # Silme işlemini onayla
@@ -337,9 +305,6 @@ class KatkidaBulunanDuzenleWindow(BaseKatkidaBulunanWindow):
 
                 # Ana penceredeki listeyi yenile
                 self.parent.butonlariYenile()
-                QMessageBox.information(
-                    self, "Silindi", f"{self.kisi[AD]} adlı kişi başarıyla silindi."
-                )
                 self.is_programmatic_close = True
                 self.close()
 
@@ -350,9 +315,9 @@ class KatkidaBulunanDuzenleWindow(BaseKatkidaBulunanWindow):
     def islemSonucu(self, success, message):
         self.progressDialog.hide()
         if success:
-            QMessageBox.information(self, "Başarılı", message)
             self.parent.butonlariYenile()  # Ana pencerenin butonlarını yenile
             self.is_programmatic_close = True
+            show_success(self.parent, "Katkıda bulunan başarıyla güncellendi.")
             self.close()
         else:
             QMessageBox.warning(self, "Hata", message)

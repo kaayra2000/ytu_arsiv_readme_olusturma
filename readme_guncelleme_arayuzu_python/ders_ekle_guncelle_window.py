@@ -24,6 +24,7 @@ from metin_islemleri import kisaltMetin
 from close_event import closeEventHandler
 from coklu_satir_girdi_dialog import SatirAtlayanInputDialog
 from screen_utils import apply_minimum_size
+from toast_notification import show_success
 
 # Hoca adlarını ve kısaltmalarını hazırla
 def hoca_sirala(hoca):
@@ -104,57 +105,39 @@ class DersEkleGuncelleWindow(QDialog):
         self.dersleriYukle()
 
     def bolumAciklamasiDuzenle(self):
+        eski_deger = self.data[BOLUM_ACIKLAMASI]
         yeni_baslik, ok = SatirAtlayanInputDialog.getMultiLineText(
             self,
             "Bölüm Açıklaması",
             "Bölüm Açıklamasını Giriniz:",
-            self.data[BOLUM_ACIKLAMASI],
+            eski_deger,
         )
         if ok:
-            cevap = QMessageBox.question(
-                self,
-                "Onay",
-                "Bölüm açıklamasını güncellemek istediğinize emin misiniz?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No,
-            )
-            if cevap == QMessageBox.StandardButton.Yes:
-                self.data[BOLUM_ACIKLAMASI] = yeni_baslik
-                self.bolumAciklamasiBtn.setText(kisaltMetin(yeni_baslik))
-                self.bolumAciklamasiBtn.setToolTip(yeni_baslik)
-                self.jsonKaydet()
-                QMessageBox.information(
-                    self, "Başarılı", "Bölüm açıklaması güncellendi."
-                )
-            else:
-                QMessageBox.information(
-                    self, "İptal", "Bölüm açıklaması güncellenmedi."
-                )
+            if yeni_baslik == eski_deger:
+                return  # Değişiklik yok
+            self.data[BOLUM_ACIKLAMASI] = yeni_baslik
+            self.bolumAciklamasiBtn.setText(kisaltMetin(yeni_baslik))
+            self.bolumAciklamasiBtn.setToolTip(yeni_baslik)
+            self.jsonKaydet()
+            show_success(self, "Bölüm açıklaması başarıyla güncellendi.")
 
     def bolumAdiDuzenle(self):
+        eski_deger = self.data[BOLUM_ADI]
         yeni_baslik, ok = QInputDialog.getText(
             self,
             "Bölüm Adı",
             "Bölüm Adını Giriniz:",
             QLineEdit.EchoMode.Normal,
-            self.data[BOLUM_ADI],
+            eski_deger,
         )
         if ok:
-            cevap = QMessageBox.question(
-                self,
-                "Onay",
-                "Bölüm adını güncellemek istediğinize emin misiniz?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No,
-            )
-            if cevap == QMessageBox.StandardButton.Yes:
-                self.data[BOLUM_ADI] = yeni_baslik
-                self.bolumAdiBtn.setText(kisaltMetin(yeni_baslik))
-                self.bolumAdiBtn.setToolTip(yeni_baslik)
-                self.jsonKaydet()
-                QMessageBox.information(self, "Başarılı", "Bölüm adı güncellendi.")
-            else:
-                QMessageBox.information(self, "İptal", "Bölüm adı güncellenmedi.")
+            if yeni_baslik == eski_deger:
+                return  # Değişiklik yok
+            self.data[BOLUM_ADI] = yeni_baslik
+            self.bolumAdiBtn.setText(kisaltMetin(yeni_baslik))
+            self.bolumAdiBtn.setToolTip(yeni_baslik)
+            self.jsonKaydet()
+            show_success(self, "Bölüm adı başarıyla güncellendi.")
 
     def jsonKaydet(self):
         with open(DERSLER_JSON_PATH, "w", encoding="utf-8") as file:
@@ -190,26 +173,17 @@ class DersEkleGuncelleWindow(QDialog):
             self.clearFiltersButton.hide()
 
     def clearFilters(self, is_clicked=True):
-        if is_clicked:
-            reply = QMessageBox.question(
-                self,
-                "Filtreleri Temizle",
-                "Filtreleri temizlemek istediğinize emin misiniz?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No,
-            )
-        if not is_clicked or reply == QMessageBox.StandardButton.Yes:
-            for i in range(self.derslerLayout.count()):
-                layout = self.derslerLayout.itemAt(i)
-                if isinstance(layout, QHBoxLayout):
-                    for j in range(layout.count()):
-                        widget = layout.itemAt(j).widget()
-                        if widget:
-                            widget.show()
-            self.clearFiltersButton.hide()  # Temizle butonunu gizle
-            self.dersSayisiLabel.setText(
-                f"Toplam {len(self.data[DERSLER])} ders"
-            )  # Ders sayısını etikette güncelle
+        for i in range(self.derslerLayout.count()):
+            layout = self.derslerLayout.itemAt(i)
+            if isinstance(layout, QHBoxLayout):
+                for j in range(layout.count()):
+                    widget = layout.itemAt(j).widget()
+                    if widget:
+                        widget.show()
+        self.clearFiltersButton.hide()  # Temizle butonunu gizle
+        self.dersSayisiLabel.setText(
+            f"Toplam {len(self.data[DERSLER])} ders"
+        )  # Ders sayısını etikette güncelle
 
     def jsonDosyasiniYukle(self):
         try:
@@ -430,7 +404,7 @@ class KaynakVeOneriDuzenleyici(QDialog):
                     self.layout.addLayout(satirLayout)
 
     def elemanSil(self, eleman, sahip_index=None, oneri_index=None):
-        # Kullanıcıya silme işlemi için onay sor
+        # Silme onayı sor
         emin_mi = QMessageBox.question(
             self,
             "Onay",
@@ -438,41 +412,41 @@ class KaynakVeOneriDuzenleyici(QDialog):
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No,
         )
+        if emin_mi != QMessageBox.StandardButton.Yes:
+            return
+        # JSON dosyasını aç ve güncelle
+        with open(DERSLER_JSON_PATH, "r+", encoding="utf-8") as file:
+            data = json.load(file)
 
-        if emin_mi == QMessageBox.StandardButton.Yes:
-            # JSON dosyasını aç ve güncelle
-            with open(DERSLER_JSON_PATH, "r+", encoding="utf-8") as file:
-                data = json.load(file)
-
-                # İlgili dersi data içinden bul
-                ders = next((d for d in data[DERSLER] if d[AD] == self.ders[AD]), None)
-                if ders and self.tur in ders:
-                    if (
-                        self.tur == DERSE_DAIR_ONERILER
-                        and sahip_index is not None
-                        and oneri_index is not None
-                    ):
-                        # İlgili öneriyi sil
-                        del ders[self.tur][sahip_index][ONERILER][oneri_index]
-                        if len(ders[self.tur][sahip_index][ONERILER]) < 1:
-                            # Öneri sahibinin önerisi kalmadı, öneri sahibini de sil
-                            del ders[self.tur][sahip_index]
-                            if len(ders[self.tur]) < 1:
-                                # Öneri kalmadı, alanı sil
-                                del ders[self.tur]
-                    elif self.tur != DERSE_DAIR_ONERILER and oneri_index is not None:
-                        # İlgili kaynağı sil
-                        del ders[self.tur][oneri_index]
+            # İlgili dersi data içinden bul
+            ders = next((d for d in data[DERSLER] if d[AD] == self.ders[AD]), None)
+            if ders and self.tur in ders:
+                if (
+                    self.tur == DERSE_DAIR_ONERILER
+                    and sahip_index is not None
+                    and oneri_index is not None
+                ):
+                    # İlgili öneriyi sil
+                    del ders[self.tur][sahip_index][ONERILER][oneri_index]
+                    if len(ders[self.tur][sahip_index][ONERILER]) < 1:
+                        # Öneri sahibinin önerisi kalmadı, öneri sahibini de sil
+                        del ders[self.tur][sahip_index]
                         if len(ders[self.tur]) < 1:
-                            # Kaynak kalmadı, alanı sil
+                            # Öneri kalmadı, alanı sil
                             del ders[self.tur]
-                    # Değişiklikleri dosyaya yaz
-                    file.seek(0)
-                    json.dump(data, file, ensure_ascii=False, indent=4)
-                    file.truncate()
+                elif self.tur != DERSE_DAIR_ONERILER and oneri_index is not None:
+                    # İlgili kaynağı sil
+                    del ders[self.tur][oneri_index]
+                    if len(ders[self.tur]) < 1:
+                        # Kaynak kalmadı, alanı sil
+                        del ders[self.tur]
+                # Değişiklikleri dosyaya yaz
+                file.seek(0)
+                json.dump(data, file, ensure_ascii=False, indent=4)
+                file.truncate()
 
-            # Arayüzü güncelle
-            self.arayuzuGuncelle()
+        # Arayüzü güncelle
+        self.arayuzuGuncelle()
     def arayuzuGuncelle(self):
         # Ebeveyn sınıfın dersleri yenileme metodunu çağır
         if self.parent and hasattr(self.parent, "dersleriYenile"):
@@ -573,6 +547,9 @@ class YeniElemanEklemeDialog(QDialog):
         self.mevcutEleman = mevcutEleman  # Güncellenecek mevcut eleman
         self.ders = ders
         self.initUI()
+        # Başlangıç değerlerini kaydet
+        self.initial_sahip = self.sahibiEdit.text() if self.tur == DERSE_DAIR_ONERILER else ""
+        self.initial_metin = self.metinEdit.toPlainText()
         if os.path.exists(OSMANLI_ICO_PATH):
             self.setWindowIcon(QIcon(OSMANLI_ICO_PATH))
 
@@ -614,27 +591,28 @@ class YeniElemanEklemeDialog(QDialog):
     def keyPressEvent(self, event):
         if event.key() == Qt.Key.Key_S and event.modifiers() & Qt.KeyboardModifier.ControlModifier:
             self.kaydet()
+
+    def hasChanges(self):
+        """Değişiklik olup olmadığını kontrol et"""
+        if self.tur == DERSE_DAIR_ONERILER:
+            return self.sahibiEdit.text() != self.initial_sahip or self.metinEdit.toPlainText() != self.initial_metin
+        return self.metinEdit.toPlainText() != self.initial_metin
+
     def closeEvent(self, event):
-        closeEventHandler(self, event, self.is_programmatic_close)
+        closeEventHandler(self, event, self.is_programmatic_close, self.hasChanges())
 
     def kaydet(self):
         oneriSahibi = (
             self.sahibiEdit.text() if self.tur == DERSE_DAIR_ONERILER else None
         )
         metin = self.metinEdit.toPlainText()
-        if not oneriSahibi and self.tur == DERSE_DAIR_ONERILER:
+        # Kaynak için boşluk kontrolü
+        if self.tur != DERSE_DAIR_ONERILER and not metin:
             QMessageBox.warning(self, "Hata", "Kaynak boş olamaz!")
             return
-        if (not oneriSahibi and self.tur == DERSE_DAIR_ONERILER) or not metin:
+        # Öneri için boşluk kontrolü
+        if self.tur == DERSE_DAIR_ONERILER and (not oneriSahibi or not metin):
             QMessageBox.warning(self, "Hata", "Öneri sahibi ve öneri boş olamaz!")
-            return
-        emin_mi = QMessageBox.question(
-            self,
-            "Onay",
-            f"Değişiklikleri Kaydetmek İstediğine Emin Misin?",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-        )
-        if emin_mi != QMessageBox.StandardButton.Yes:
             return
         # JSON dosyasını aç ve güncelle
         with open(DERSLER_JSON_PATH, "r+", encoding="utf-8") as file:
@@ -717,10 +695,10 @@ class YeniElemanEklemeDialog(QDialog):
             file.seek(0)
             json.dump(data, file, ensure_ascii=False, indent=4)
             file.truncate()
-        QMessageBox.information(self, "Başarılı", "Değişiklikler kaydedildi!")
         self.parent.arayuzuGuncelle()
         self.is_programmatic_close = True
         self.close()
+        show_success(self.parent, "Kaydedildi!")
 
 
 class DersDuzenlemeWindow(QDialog):
@@ -733,8 +711,31 @@ class DersDuzenlemeWindow(QDialog):
         self.setModal(True)
         self.hocalarComboBoxlar = []  # Hoca seçimi için ComboBox'lar listesi
         self.initUI()
+        # Başlangıç değerlerini kaydet
+        self.saveInitialState()
         if os.path.exists(SELCUKLU_ICO_PATH):
             self.setWindowIcon(QIcon(SELCUKLU_ICO_PATH))
+
+    def saveInitialState(self):
+        """Başlangıç değerlerini kaydet"""
+        self.initial_ad = self.adInput.text()
+        self.initial_yil = self.yilInput.currentText()
+        self.initial_donem = self.donemInput.currentText()
+        self.initial_guncel = self.guncelMi.currentText()
+        self.initial_tip = self.tipInput.currentText()
+        self.initial_hocalar = [combo.currentData() for combo, _ in self.hocalarComboBoxlar]
+
+    def hasChanges(self):
+        """Değişiklik olup olmadığını kontrol et"""
+        current_hocalar = [combo.currentData() for combo, _ in self.hocalarComboBoxlar]
+        return (
+            self.adInput.text() != self.initial_ad or
+            self.yilInput.currentText() != self.initial_yil or
+            self.donemInput.currentText() != self.initial_donem or
+            self.guncelMi.currentText() != self.initial_guncel or
+            self.tipInput.currentText() != self.initial_tip or
+            current_hocalar != self.initial_hocalar
+        )
 
     def initUI(self):
         self.setWindowTitle("Ders Düzenle/Ekle")
@@ -848,7 +849,7 @@ class DersDuzenlemeWindow(QDialog):
 
     # Kapatma tuşuna basılırsa emin misin diye sor
     def closeEvent(self, event):
-        closeEventHandler(self, event, self.is_programmatic_close)
+        closeEventHandler(self, event, self.is_programmatic_close, self.hasChanges())
     def keyPressEvent(self, event):
         if event.key() == Qt.Key.Key_S and event.modifiers() == Qt.KeyboardModifier.ControlModifier:
             self.kaydet()
@@ -881,8 +882,6 @@ class DersDuzenlemeWindow(QDialog):
 
         # ComboBox listesini güncelle
         self.hocalarComboBoxlar.append((comboBox, silBtn))
-        if not hoca:
-            QMessageBox.information(self, "Bilgi", "Listeye bir hoca eklendi!")
 
     def silHocaComboBox(self, comboBox, silBtn):
         # ComboBox ve sil butonunu kaldır
@@ -913,14 +912,6 @@ class DersDuzenlemeWindow(QDialog):
                     self, "Hata", "Dönem bilgisi olmayan dersler " + ZORUNLU + " olamaz!"
                 )
                 return
-        cevap = QMessageBox.question(
-            self,
-            "Onay",
-            "Değişiklikleri Kaydetmek İstediğine Emin Misin?",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-        )
-        if cevap != QMessageBox.StandardButton.Yes:
-            return
         # Seçili hocaların kısaltmalarını al
         hocalar_kisaltmalar = [
             combo.currentData() for combo, _ in self.hocalarComboBoxlar
@@ -1029,9 +1020,9 @@ class DersDuzenlemeWindow(QDialog):
         try:
             with open(DERSLER_JSON_PATH, "w", encoding="utf-8") as file:
                 json.dump(self.data, file, ensure_ascii=False, indent=4)
-            QMessageBox.information(self, "Başarılı", "Değişiklikler kaydedildi!")
             self.parent.dersleriYenile()
             self.is_programmatic_close = True
             self.close()
+            show_success(self.parent, "Ders kaydedildi!")
         except Exception as e:
             QMessageBox.critical(self, "Hata", f"Dosya yazılırken bir hata oluştu: {e}")

@@ -1,6 +1,7 @@
 import requests
 import unicodedata
 import json
+import copy
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
     QDialog,
@@ -24,6 +25,8 @@ from degiskenler import *
 from PyQt6.QtGui import QIcon
 from metin_islemleri import kisaltMetin
 from screen_utils import apply_minimum_size
+from close_event import closeEventHandler
+from toast_notification import show_success
 
 
 class HocaEkleGuncelleWindow(QDialog):
@@ -32,8 +35,10 @@ class HocaEkleGuncelleWindow(QDialog):
         self.setModal(True)
         self.is_programmatic_close = False
         self.data = self.jsonDosyasiniYukle()
+        self.initial_data = copy.deepcopy(self.data)
         if self.ilklendir():
             self.jsonKaydet()
+            self.initial_data = copy.deepcopy(self.data)
         self.initUI()
         if os.path.exists(SELCUKLU_ICO_PATH):
             self.setWindowIcon(QIcon(SELCUKLU_ICO_PATH))
@@ -95,59 +100,49 @@ class HocaEkleGuncelleWindow(QDialog):
         self.hocalariYukle()
 
     def bolumAciklamaDuzenle(self):
+        eski_deger = self.data[BOLUM_ACIKLAMASI]
         text, ok = SatirAtlayanInputDialog.getMultiLineText(
             self,
             "Bölüm Açıklaması",
             "Bölüm açıklaması:",
-            text=self.data[BOLUM_ACIKLAMASI],
+            text=eski_deger,
         )
         if ok:
-            cevap = QMessageBox.question(
-                self,
-                "Onay",
-                "Bölüm açıklamasını güncellemek istediğinize emin misiniz?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            )
-            if cevap == QMessageBox.StandardButton.Yes:
-                self.data[BOLUM_ACIKLAMASI] = text
-                self.bolumAciklamasiBtn.setText(kisaltMetin(text))
-                self.bolumAciklamasiBtn.setToolTip(text)
-                self.jsonKaydet()
-                QMessageBox.information(
-                    self, "Başarılı", "Bölüm açıklaması güncellendi."
-                )
-            else:
-                QMessageBox.information(
-                    self, "İptal", "Bölüm açıklaması güncellenmedi."
-                )
+            if text == eski_deger:
+                return  # Değişiklik yok
+            self.data[BOLUM_ACIKLAMASI] = text
+            self.bolumAciklamasiBtn.setText(kisaltMetin(text))
+            self.bolumAciklamasiBtn.setToolTip(text)
+            self.jsonKaydet()
+            show_success(self, "Bölüm açıklaması başarıyla güncellendi.")
 
     def bolumAdiDuzenle(self):
+        eski_deger = self.data[BOLUM_ADI]
         text, ok = QInputDialog.getText(
             self,
             "Bölüm Adı",
             "Bölüm adı:",
             QLineEdit.EchoMode.Normal,
-            text=self.data[BOLUM_ADI],
+            text=eski_deger,
         )
         if ok:
-            cevap = QMessageBox.question(
-                self,
-                "Onay",
-                "Bölüm adını güncellemek istediğinize emin misiniz?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            )
-            if cevap == QMessageBox.StandardButton.Yes:
-                self.data[BOLUM_ADI] = text
-                self.bolumAdiBtn.setText(kisaltMetin(text))
-                self.bolumAdiBtn.setToolTip(text)
-                self.jsonKaydet()
-                QMessageBox.information(self, "Başarılı", "Bölüm adı güncellendi.")
-            else:
-                QMessageBox.information(self, "İptal", "Bölüm adı güncellenmedi.")
+            if text == eski_deger:
+                return  # Değişiklik yok
+            self.data[BOLUM_ADI] = text
+            self.bolumAdiBtn.setText(kisaltMetin(text))
+            self.bolumAdiBtn.setToolTip(text)
+            self.jsonKaydet()
+            show_success(self, "Bölüm adı başarıyla güncellendi.")
 
     def jsonKaydet(self):
         with open(HOCALAR_JSON_PATH, "w", encoding="utf-8") as file:
             json.dump(self.data, file, ensure_ascii=False, indent=4)
+
+    def hasChanges(self):
+        return self.data != self.initial_data
+
+    def closeEvent(self, event):
+        closeEventHandler(self, event, self.is_programmatic_close, self.hasChanges())
 
     def keyPressEvent(self, event):
         if (
@@ -160,23 +155,14 @@ class HocaEkleGuncelleWindow(QDialog):
 
     # Filtreleri temizleme fonksiyonu
     def clearFilters(self, is_clicked=True):
-        if is_clicked:
-            reply = QMessageBox.question(
-                self,
-                "Filtreleri Temizle",
-                "Filtreleri temizlemek istediğinize emin misiniz?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No,
-            )
-        if not is_clicked or reply == QMessageBox.StandardButton.Yes:
-            for i in range(self.hocalarLayout.count()):
-                widget = self.hocalarLayout.itemAt(i).widget()
-                if isinstance(widget, QPushButton):
-                    widget.show()
-            self.clearFiltersButton.hide()  # Temizle butonunu gizle
-            self.hocaSayisiLabel.setText(
-                f"Toplam {len(self.data[HOCALAR])} hoca"
-            )  # Hoca sayısını etikette güncelle
+        for i in range(self.hocalarLayout.count()):
+            widget = self.hocalarLayout.itemAt(i).widget()
+            if isinstance(widget, QPushButton):
+                widget.show()
+        self.clearFiltersButton.hide()  # Temizle butonunu gizle
+        self.hocaSayisiLabel.setText(
+            f"Toplam {len(self.data[HOCALAR])} hoca"
+        )  # Hoca sayısını etikette güncelle
 
     def searchHocalar(self, query):
         if query == "":
@@ -303,7 +289,9 @@ class HocaDuzenlemeWindow(QDialog):
         self.parent = parent
         self.derslerComboBoxlar = []  # Hoca seçimi için ComboBox'lar listesi
         self.setModal(True)
+        self.is_programmatic_close = False
         self.initUI()
+        self.saveInitialState()
         if os.path.exists(SELCUKLU_ICO_PATH):
             self.setWindowIcon(QIcon(SELCUKLU_ICO_PATH))
 
@@ -425,6 +413,31 @@ class HocaDuzenlemeWindow(QDialog):
         ):
             self.kaydet()
 
+    def saveInitialState(self):
+        """Başlangıç değerlerini kaydet"""
+        self.initial_unvan = self.unvanInput.currentText()
+        self.initial_ad = self.adInput.text()
+        self.initial_ofis = self.ofisInput.text()
+        self.initial_link = self.linkInput.text()
+        self.initial_aktif = self.aktifGorevdeInput.currentText()
+        self.initial_erkek = self.erkekMiInput.currentText()
+        self.initial_dersler = self.secilenDersleriDondur()
+
+    def hasChanges(self):
+        """Değişiklik olup olmadığını kontrol et"""
+        return (
+            self.unvanInput.currentText() != self.initial_unvan or
+            self.adInput.text() != self.initial_ad or
+            self.ofisInput.text() != self.initial_ofis or
+            self.linkInput.text() != self.initial_link or
+            self.aktifGorevdeInput.currentText() != self.initial_aktif or
+            self.erkekMiInput.currentText() != self.initial_erkek or
+            self.secilenDersleriDondur() != self.initial_dersler
+        )
+
+    def closeEvent(self, event):
+        closeEventHandler(self, event, self.is_programmatic_close, self.hasChanges())
+
     def dersEkleComboBox(self, hoca_ders=None):
         if len(self.dersler) == 0:
             QMessageBox.critical(
@@ -459,8 +472,6 @@ class HocaDuzenlemeWindow(QDialog):
 
         # ComboBox listesini güncelle
         self.derslerComboBoxlar.append((comboBox, silBtn))
-        if not hoca_ders:
-            QMessageBox.information(self, "Başarılı", "Listeye bir ders eklendi.")
 
     def silDersComboBox(self, comboBox, silBtn):
         # ComboBox ve sil butonunu kaldır
@@ -512,15 +523,7 @@ class HocaDuzenlemeWindow(QDialog):
             return False
 
     def kaydet(self):
-        cevap = QMessageBox.question(
-            self,
-            "Onay",
-            "Değişiklikleri kaydetmek istediğinize emin misiniz?",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-        )
-        if cevap == QMessageBox.StandardButton.No:
-            QMessageBox.information(self, "İptal", "Değişiklikler kaydedilmedi.")
-            return
+
         self.thread = HocaKaydetThread(self.hoca, self.data, self)
         self.thread.finished.connect(
             self.islemTamamlandi
@@ -595,8 +598,8 @@ class HocaDuzenlemeWindow(QDialog):
             with open(HOCALAR_JSON_PATH, "w", encoding="utf-8") as file:
                 json.dump(self.data, file, ensure_ascii=False, indent=4)
             self.parent.hocalariYenile()
-            QMessageBox.information(self, "Başarılı", "Değişiklikler kaydedildi!")
             self.is_programmatic_close = True
+            show_success(self.parent, "Hoca başarıyla kaydedildi.")
             self.close()
         except Exception as e:
             QMessageBox.critical(self, "Hata", f"Dosya yazılırken bir hata oluştu: {e}")

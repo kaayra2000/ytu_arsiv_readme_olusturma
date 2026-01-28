@@ -79,15 +79,6 @@ class GitIslemleriWindow(QDialog):
         hoca_ders_adlari_window.exec()
 
     def run_script(self, script_path, baslik, islem="", dizin=BIR_UST_DIZIN, arayuz_guncelleme=False):
-        cevap = QMessageBox.question(
-            self,
-            "Onay",
-            f"{islem} işlemini başlatmak istediğinize emin misiniz?",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-        )
-        if cevap == QMessageBox.StandardButton.No:
-            QMessageBox.information(self, "İptal", "İşlem iptal edildi.")
-            return
         self.original_dir = os.getcwd()
         os.chdir(dizin)
         self.progress_dialog = CustomProgressDialogWithCancel(
@@ -151,16 +142,6 @@ class GitIslemleriWindow(QDialog):
             islem: İşlem açıklaması (onay dialog için)
             dizin: Çalışma dizini (None ise değiştirilmez)
         """
-        cevap = QMessageBox.question(
-            self,
-            "Onay",
-            f"{islem} işlemini başlatmak istediğinize emin misiniz?",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-        )
-        if cevap == QMessageBox.StandardButton.No:
-            QMessageBox.information(self, "İptal", "İşlem iptal edildi.")
-            return
-        
         self.original_dir = os.getcwd()
         if dizin:
             os.chdir(dizin)

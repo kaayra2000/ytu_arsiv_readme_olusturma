@@ -18,6 +18,7 @@ from PyQt6.QtGui import QIcon
 from PyQt6.QtCore import Qt
 from close_event import closeEventHandler
 from screen_utils import apply_minimum_size
+from toast_notification import show_success
 
 
 class BaseKatkidaBulunanWindow(QDialog):
@@ -28,6 +29,7 @@ class BaseKatkidaBulunanWindow(QDialog):
         self.iletisim_bilgileri_dizisi = {}
         self.is_programmatic_close = False
         self.initUI()
+        self.saveInitialState()
         if os.path.exists(SELCUKLU_ICO_PATH):
             self.setWindowIcon(QIcon(SELCUKLU_ICO_PATH))
 
@@ -78,6 +80,31 @@ class BaseKatkidaBulunanWindow(QDialog):
         self.layout.addWidget(self.scrollArea)  # Ana layout'a ScrollArea ekle
 
         self.setLayout(self.layout)
+
+    def saveInitialState(self):
+        """Başlangıç değerlerini kaydet"""
+        self.initial_ad = self.ad_input.text()
+        self.initial_oran = self.katkida_bulunma_orani.currentText()
+        self.initial_iletisim = self.getIletisimBilgileriForComparison()
+
+    def getIletisimBilgileriForComparison(self):
+        """İletişim bilgilerini karşılaştırma için al"""
+        bilgiler = []
+        for i in range(self.iletisimBilgisiLayout.count()):
+            hbox_layout = self.iletisimBilgisiLayout.itemAt(i).layout()
+            if hbox_layout is not None:
+                baslik = hbox_layout.itemAt(1).widget().text()
+                link = hbox_layout.itemAt(3).widget().text()
+                bilgiler.append((baslik, link))
+        return bilgiler
+
+    def hasChanges(self):
+        """Değişiklik olup olmadığını kontrol et"""
+        return (
+            self.ad_input.text() != self.initial_ad or
+            self.katkida_bulunma_orani.currentText() != self.initial_oran or
+            self.getIletisimBilgileriForComparison() != self.initial_iletisim
+        )
 
     def iletisimBilgisiEkle(self, baslik="", link=""):
         self.iletisim_bilgisi_sayisi += 1
@@ -144,27 +171,19 @@ class BaseKatkidaBulunanWindow(QDialog):
             return
         if not self.iletisimBilgileriYukle():
             return
-        emin_mi = QMessageBox.question(
+        self.thread = KatkiEkleThread(
+            ad,
+            self.kisi,
+            self.iletisim_bilgileri_dizisi,
+            KATKIDA_BULUNANLAR_JSON_PATH,
+            self.katkida_bulunma_orani.currentText(),
+            self.data,
             self,
-            "Onay",
-            "Değişiklikleri kaydetmek istediğinden emin misin?",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
-
-        if emin_mi == QMessageBox.StandardButton.Yes:
-            self.thread = KatkiEkleThread(
-                ad,
-                self.kisi,
-                self.iletisim_bilgileri_dizisi,
-                KATKIDA_BULUNANLAR_JSON_PATH,
-                self.katkida_bulunma_orani.currentText(),
-                self.data,
-                self,
-            )
-            self.thread.finished.connect(self.islemSonucu)
-            # ProgressDialog'u göster
-            self.progressDialog.show()
-            self.thread.start()
+        self.thread.finished.connect(self.islemSonucu)
+        # ProgressDialog'u göster
+        self.progressDialog.show()
+        self.thread.start()
 
     def iletisimBilgileriYukle(self):
         self.iletisim_bilgileri_dizisi[ILETISIM_BILGILERI] = []
@@ -204,15 +223,15 @@ class KatkidaBulunanEkleWindow(BaseKatkidaBulunanWindow):
         self.show()
 
     def closeEvent(self, event):
-        closeEventHandler(self, event, self.is_programmatic_close)
+        closeEventHandler(self, event, self.is_programmatic_close, self.hasChanges())
 
     def islemSonucu(self, success, message):
         self.progressDialog.close()
         if success:
-            QMessageBox.information(self, "Başarılı", message)
             # Gerekli güncellemeleri yapın ve pencereyi kapatın
             self.parent.butonlariYenile()
             self.is_programmatic_close = True
+            show_success(self.parent, "Katkıda bulunan başarıyla eklendi.")
             self.close()
         else:
             QMessageBox.warning(self, "Hata", message)

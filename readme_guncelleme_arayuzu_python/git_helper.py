@@ -240,20 +240,6 @@ class GitDialog(QDialog):
             QMessageBox.warning(self, "Hata", "Eklenecek eleman bulunamadı")
             return
 
-        reply = QMessageBox.question(
-            self,
-            "Emin Misiniz?",
-            "Tüm değişiklikleri kaydetmek istediğinize emin misiniz?",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No,
-        )
-
-        if reply == QMessageBox.StandardButton.No:
-            QMessageBox.information(
-                self, "İptal Edildi", "Tüm değişiklikleri kaydetme işlemi iptal edildi."
-            )
-            return
-
         self.itemsToProcess = iter(self.getItemsFromListWidget(self.unstagedList))
         self.timer.start(
             30
@@ -270,19 +256,6 @@ class GitDialog(QDialog):
     def tumDegisiklikleriSil(self):
         if len(self.stagedList) == 0:
             QMessageBox.warning(self, "Hata", "Silinecek eleman bulunamadı")
-            return
-        reply = QMessageBox.question(
-            self,
-            "Emin Misiniz?",
-            "Tüm değişiklikleri itap etmek istediğinize emin misiniz?",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No,
-        )
-
-        if reply == QMessageBox.StandardButton.No:
-            QMessageBox.information(
-                self, "İptal Edildi", "Tüm değişiklikleri iptal işlemi iptal edildi."
-            )
             return
         self.itemsToProcess = iter(self.getItemsFromListWidget(self.stagedList))
         self.timer.start(
@@ -355,9 +328,6 @@ class GitDialog(QDialog):
         )
 
         if reply == QMessageBox.StandardButton.No:
-            QMessageBox.information(
-                self, "İptal Edildi", "Pushlama işlemi iptal edildi."
-            )
             return
         if self.amendCheckBox.isChecked():
             komut = f'git -C "{self.repo_path}" commit --amend -m "{commit_msg}" && git -C "{self.repo_path}" push --force-with-lease'

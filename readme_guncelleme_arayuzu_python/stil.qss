@@ -238,3 +238,46 @@ QLabel#toast-info {
     border-radius: 8px;
     font-size: 13px;
 }
+
+/* Sürükleme Listesi Stili */
+QListWidget#suruklemeListe {
+    border: 1px solid #3498db;
+    border-radius: 6px;
+    padding: 8px;
+    background-color: #ffffff;
+    outline: none;
+}
+
+QListWidget#suruklemeListe::item {
+    padding: 12px 15px;
+    margin: 4px 2px;
+    border: 1px solid #bdc3c7;
+    border-radius: 6px;
+    background-color: #ecf0f1;
+    color: #2c3e50;
+    font-size: 13px;
+    font-weight: normal;
+}
+
+QListWidget#suruklemeListe::item:selected {
+    background-color: #3498db;
+    border: 1px solid #2980b9;
+    color: white;
+}
+
+QListWidget#suruklemeListe::item:hover {
+    background-color: #d5dbdb;
+    border: 1px solid #3498db;
+}
+
+QListWidget#suruklemeListe::item:selected:hover {
+    background-color: #2980b9;
+}
+
+/* Sürükle-Bırak Bilgi Etiketi */
+QLabel#surukleBilgiLabel {
+    color: #7f8c8d;
+    font-size: 12px;
+    padding: 5px;
+    background-color: transparent;
+}

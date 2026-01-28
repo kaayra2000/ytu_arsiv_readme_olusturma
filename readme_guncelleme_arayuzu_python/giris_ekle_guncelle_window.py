@@ -18,7 +18,7 @@ import json
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIcon, QGuiApplication
 import re
-from helpers.yukari_asagi_dugme_dizilimi import YukariAsagiDugmeDizilimi
+from helpers.surukleme_listesi import SuruklemeListe, SuruklemeListeItem, surukle_bilgi_etiketi
 from close_event import closeEventHandler
 from screen_utils import apply_minimum_size
 from toast_notification import show_success
@@ -88,16 +88,15 @@ class GirisEkleGuncelleWindow(QDialog):
         self.notSayisiLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.mainLayout.addWidget(self.notSayisiLabel)
 
-        # Kaydırılabilir alan oluştur
-        self.scrollArea = QScrollArea(self)  # ScrollArea oluştur
-        self.scrollArea.setWidgetResizable(True)
+        # Bilgi etiketi
+        self.bilgiLabel = surukle_bilgi_etiketi(self)
+        self.mainLayout.addWidget(self.bilgiLabel)
 
-        # Notları gösterecek iç içe geçmiş widget'lar oluştur
-        self.scrollWidget = QWidget()
-        self.notlarLayout = QVBoxLayout(self.scrollWidget)  # Notlar için QVBoxLayout
-
-        self.scrollArea.setWidget(self.scrollWidget)  # ScrollArea'ya widget ekle
-        self.mainLayout.addWidget(self.scrollArea)  # Ana layout'a ScrollArea ekle
+        # Sürükle-bırak listesi
+        self.suruklemeListe = SuruklemeListe(self)
+        self.suruklemeListe.itemDoubleClicked.connect(self.surukleListeItemDuzenle)
+        self.suruklemeListe.siralama_degisti.connect(self.suruklemeSiralamaKaydet)
+        self.mainLayout.addWidget(self.suruklemeListe)
 
         self.notlariYukle()
 
@@ -154,94 +153,41 @@ class GirisEkleGuncelleWindow(QDialog):
                 f"Toplam {icindekiler_sayisi} içindekiler"
             )  # Not sayısını etikette güncelle
 
+            # Sürükle-bırak listesini doldur
+            self.suruklemeListe.clear()
             for idx, not_ in enumerate(self.data[ICINDEKILER]):
-                ana_fonksiyon = lambda checked, i=idx: self.notDuzenle(i)
-                buton_aciklama = f"İçindekiler {idx + 1}: {kisaltMetin(not_)}"
-                yukari_fonksiyon = lambda checked, i=idx: self.notTasi(i, i - 1)
-                asagi_fonksiyon = lambda checked, i=idx: self.notTasi(i, i + 1)
-                btn_layout = YukariAsagiDugmeDizilimi(
-                    ana_fonksiyon,
-                    yukari_fonksiyon,
-                    asagi_fonksiyon,
-                    buton_aciklama,
-                    not_,
+                item = SuruklemeListeItem(
+                    f"📌 {idx + 1}: {kisaltMetin(not_)}",
+                    data=not_,
+                    index=idx
                 )
-                self.notlarLayout.addLayout(btn_layout)
+                item.setToolTip(not_)
+                self.suruklemeListe.addItem(item)
         except Exception as e:
             QMessageBox.critical(self, "Hata", f"Dosya okunurken bir hata oluştu: {e}")
 
-    def notlariTemizle(self):
-        # Layout içinde dolaş ve her bir item'ı sil
-        for i in reversed(range(self.notlarLayout.count())):
-            layoutItem = self.notlarLayout.itemAt(i)
-            # Eğer layout item bir widget'a sahipse, widget'ı sil
-            if layoutItem.widget():
-                widget = layoutItem.widget()
-                self.notlarLayout.removeWidget(widget)  # Widget'ı layout'tan çıkar
-                widget.deleteLater()  # Widget'ı bellekten tamamen sil
-            # Eğer layout item başka bir layout ise, bu layout'u sil
-            elif layoutItem.layout():
-                subLayout = layoutItem.layout()
-                self.layoutuTemizle(subLayout)  # Alt layout'u temizle
-                subLayout.deleteLater()  # Alt layout'u bellekten tamamen sil
-            # Eğer layout item bir spacer ise, onu çıkar
-            elif layoutItem.spacerItem():
-                self.notlarLayout.removeItem(
-                    layoutItem
-                )  # Spacer item'ı layout'tan çıkar
+    def surukleListeItemDuzenle(self, item):
+        """Sürükle-bırak listesinde çift tıklanan öğeyi düzenle"""
+        idx = self.suruklemeListe.row(item)
+        self.notDuzenle(idx)
 
-    def layoutuTemizle(self, layout):
-        # Verilen layout içinde dolaş ve her bir item'ı sil
-        for i in reversed(range(layout.count())):
-            layoutItem = layout.itemAt(i)
-            if layoutItem.widget():
-                widget = layoutItem.widget()
-                layout.removeWidget(widget)
-                widget.deleteLater()
-            elif layoutItem.layout():
-                subLayout = layoutItem.layout()
-                self.layoutuTemizle(subLayout)
-                subLayout.deleteLater()
-            elif layoutItem.spacerItem():
-                layout.removeItem(layoutItem)
+    def suruklemeSiralamaKaydet(self):
+        """Sürükle-bırak sonrası yeni sıralamayı kaydet"""
+        yeni_siralama = []
+        for i in range(self.suruklemeListe.count()):
+            item = self.suruklemeListe.item(i)
+            yeni_siralama.append(item.custom_data)
+        self.data[ICINDEKILER] = yeni_siralama
+        self.jsonKaydet()
+        # Sürükle-bırak listesindeki item metinlerini güncelle
+        for i in range(self.suruklemeListe.count()):
+            item = self.suruklemeListe.item(i)
+            item.setText(f"📌 {i + 1}: {kisaltMetin(item.custom_data)}")
+        show_success(self, "Sıralama kaydedildi.")
 
     def notlariYenile(self):
-        self.notlariTemizle()
         self.notlariYukle()
         self.clearFiltersButton.hide()  # Temizle butonunu gizle
-
-    def notTasi(self, idx, idx2):
-        total_items = self.notlarLayout.count()
-
-        # Negatif indeksleri dönüştür
-        if idx < 0:
-            idx += total_items
-        if idx2 < 0:
-            idx2 += total_items
-        idx %= total_items
-        idx2 %= total_items
-        self.btnSwap(
-            self.notlarLayout.itemAt(idx).layout().itemAt(0).widget(),  # Mevcut buton
-            self.notlarLayout.itemAt(idx2)
-            .layout()
-            .itemAt(0)
-            .widget(),  # Bir alttaki buton
-            idx,
-            idx2,
-        )
-
-    # buton swap işi
-    def btnSwap(self, btn1, btn2, idx1, idx2):
-        tmp_text = btn1.toolTip()
-        btn1.setText(f"İçindekiler {idx1 + 1}: {kisaltMetin(btn2.toolTip())}")
-        btn1.setToolTip(btn2.toolTip())
-        btn2.setText(f"İçindekiler {idx2 + 1}: {kisaltMetin(tmp_text)}")
-        btn2.setToolTip(tmp_text)
-        self.data[ICINDEKILER][idx1], self.data[ICINDEKILER][idx2] = (
-            self.data[ICINDEKILER][idx2],
-            self.data[ICINDEKILER][idx1],
-        )
-        self.jsonKaydet()
 
     def jsonDosyasiniYukle(self):
         try:
@@ -268,13 +214,13 @@ class GirisEkleGuncelleWindow(QDialog):
                 QMessageBox.StandardButton.No,
             )
         if not is_clicked or reply == QMessageBox.StandardButton.Yes:
-            for i in range(self.notlarLayout.count()):
-                layout = self.notlarLayout.itemAt(i)
-                self.layoutGorunumDegistir(layout, True)
-            self.clearFiltersButton.hide()  # Temizle butonunu gizle
+            # Tüm öğeleri göster
+            for i in range(self.suruklemeListe.count()):
+                self.suruklemeListe.item(i).setHidden(False)
+            self.clearFiltersButton.hide()
             self.notSayisiLabel.setText(
                 f"Toplam {len(self.data[ICINDEKILER])} içindekiler"
-            )  # Not sayısını etikette güncelle
+            )
 
     def searchNotes(self, query):
         if not query:
@@ -282,17 +228,13 @@ class GirisEkleGuncelleWindow(QDialog):
             return
         size = 0
         for idx, not_ in enumerate(self.data[ICINDEKILER]):
-            widget = self.notlarLayout.itemAt(idx).itemAt(0).widget()
-            if isinstance(widget, QPushButton):
+            item = self.suruklemeListe.item(idx)
+            if item:
                 if query.replace("İ", "i").lower() in not_.replace("İ", "i").lower():
-                    self.layoutGorunumDegistir(
-                        self.notlarLayout.itemAt(idx), gorunum=True
-                    )
+                    item.setHidden(False)
                     size += 1
                 else:
-                    self.layoutGorunumDegistir(
-                        self.notlarLayout.itemAt(idx), gorunum=False
-                    )
+                    item.setHidden(True)
         if size == len(self.data[ICINDEKILER]):
             self.clearFilters(is_clicked=False)
             return
@@ -301,20 +243,6 @@ class GirisEkleGuncelleWindow(QDialog):
             self.clearFiltersButton.show()
         else:
             self.clearFiltersButton.hide()
-
-    def layoutGorunumDegistir(self, layout, gorunum):
-        for i in range(layout.count()):
-            item = layout.itemAt(i)
-            if item.widget() is not None:  # Eğer item bir widget ise
-                widget = item.widget()
-                if gorunum:
-                    widget.show()
-                else:
-                    widget.hide()
-            elif item.layout() is not None:  # Eğer item bir alt layout ise
-                self.layoutGorunumDegistir(
-                    item.layout(), gorunum
-                )  # Fonksiyon kendini rekürsif olarak çağırır
 
     def baslikDuzenle(self):
         self.aciklamaDuzenle(BASLIK)

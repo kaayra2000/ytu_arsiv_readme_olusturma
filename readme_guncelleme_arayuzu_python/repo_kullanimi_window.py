@@ -1,15 +1,12 @@
 from PyQt6.QtWidgets import (
     QWidget,
-    QScrollArea,
     QDialog,
     QLabel,
     QLineEdit,
     QInputDialog,
     QVBoxLayout,
     QPushButton,
-    QInputDialog,
     QMessageBox,
-    QHBoxLayout,
     QSizePolicy,
 )
 from coklu_satir_girdi_dialog import SatirAtlayanInputDialog, TekSatirInputDialog
@@ -21,6 +18,7 @@ from PyQt6.QtGui import QIcon
 from screen_utils import apply_minimum_size, calculate_scroll_area_size
 from toast_notification import show_success
 from undo_manager import UndoManager
+from helpers.surukleme_listesi import SuruklemeListe, SuruklemeListeItem, surukle_bilgi_etiketi
 
 
 class TalimatDialog(QDialog):
@@ -48,20 +46,18 @@ class TalimatDialog(QDialog):
         self.talimatSayisiLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.layout.addWidget(self.talimatSayisiLabel)
 
-        # Kaydırılabilir alan oluştur
-        self.scrollArea = QScrollArea(self)
-        self.scrollAreaWidgetContents = QWidget()
-        self.scrollArea.setWidgetResizable(True)
-        self.scrollLayout = QVBoxLayout(self.scrollAreaWidgetContents)
-        self.scrollArea.setWidget(self.scrollAreaWidgetContents)
-        self.layout.addWidget(self.scrollArea)
-        self.scrollArea.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        )
+        # Bilgi etiketi
+        self.bilgiLabel = surukle_bilgi_etiketi(self)
+        self.layout.addWidget(self.bilgiLabel)
 
-        # ScrollArea için minimum boyutu dinamik olarak belirle
+        # Sürükle-bırak listesi
+        self.suruklemeListe = SuruklemeListe(self)
+        self.suruklemeListe.itemDoubleClicked.connect(self.surukleListeItemDuzenle)
+        self.suruklemeListe.siralama_degisti.connect(self.suruklemeSiralamaKaydet)
+        # Minimum boyut
         w, h = calculate_scroll_area_size(580, 300)
-        self.scrollArea.setMinimumSize(w, h)
+        self.suruklemeListe.setMinimumSize(w, h)
+        self.layout.addWidget(self.suruklemeListe)
 
         self.yenile()
 
@@ -92,16 +88,11 @@ class TalimatDialog(QDialog):
             self.clearFilters(is_clicked=False)
             return
         size = 0
-        for idx, kavram in enumerate(self.repo_data[TALIMATLAR]):
-            layout = self.scrollLayout.itemAt(idx)
-            if isinstance(layout, QHBoxLayout):
-                match = (
-                    query.replace("İ", "i").lower() in kavram.replace("İ", "i").lower()
-                )
-                for i in range(layout.count()):
-                    widget = layout.itemAt(i).widget()
-                    if widget:
-                        widget.setVisible(match)
+        for idx, talimat in enumerate(self.repo_data[TALIMATLAR]):
+            item = self.suruklemeListe.item(idx)
+            if item:
+                match = query.replace("İ", "i").lower() in talimat.replace("İ", "i").lower()
+                item.setHidden(not match)
                 if match:
                     size += 1
         if size == len(self.repo_data[TALIMATLAR]):
@@ -114,19 +105,12 @@ class TalimatDialog(QDialog):
             self.clearFiltersButton.hide()
 
     def clearFilters(self, is_clicked=True):
-        for i in range(self.scrollLayout.count()):
-            layout = self.scrollLayout.itemAt(i)
-            if isinstance(
-                layout, QHBoxLayout
-            ):  # Burayı QHBoxLayout olarak değiştirdik
-                for j in range(layout.count()):
-                    widget = layout.itemAt(j).widget()
-                    if widget:
-                        widget.show()
-        self.clearFiltersButton.hide()  # Temizle butonunu gizle
+        for i in range(self.suruklemeListe.count()):
+            self.suruklemeListe.item(i).setHidden(False)
+        self.clearFiltersButton.hide()
         self.talimatSayisiLabel.setText(
             f"Toplam {len(self.repo_data[TALIMATLAR])} talimat"
-        )  # kavram sayısını etikette güncelle
+        )
 
     def jsonVeriOku(self):
         try:
@@ -136,46 +120,40 @@ class TalimatDialog(QDialog):
             return {TALIMATLAR: []}
 
     def talimatListele(self):
-        # Mevcut talimatları temizle
-        self.temizle()
         self.talimatSayisiLabel.setText(
             f"Toplam {len(self.repo_data[TALIMATLAR])} talimat"
         )
-        self.clearFiltersButton.hide()  # Temizle butonunu gizle
+        self.clearFiltersButton.hide()
+
+        # Sürükle-bırak listesini doldur
+        self.suruklemeListe.clear()
         for i, talimat in enumerate(self.repo_data[TALIMATLAR]):
-            talimatLayout = QHBoxLayout()
-
-            talimatBtn = QPushButton(kisaltMetin(talimat), self)
-            # talimatBtn.setToolTip(talimat)
-            talimatBtn.clicked.connect(
-                lambda checked, index=i: self.talimatDuzenle(index)
+            item = SuruklemeListeItem(
+                f"📋 {i + 1}: {kisaltMetin(talimat)}",
+                data=talimat,
+                index=i
             )
-            talimatBtn.setStyleSheet(GUNCELLE_BUTTON_STILI)
-            talimatLayout.addWidget(talimatBtn, 3)
+            item.setToolTip(talimat)
+            self.suruklemeListe.addItem(item)
 
-            silBtn = QPushButton("Sil", self)
-            silBtn.setStyleSheet(SIL_BUTONU_STILI)
-            silBtn.clicked.connect(lambda checked, index=i: self.talimatSil(index))
-            talimatLayout.addWidget(silBtn, 1)
+    def surukleListeItemDuzenle(self, item):
+        """Sürükle-bırak listesinde çift tıklanan öğeyi düzenle"""
+        idx = self.suruklemeListe.row(item)
+        self.talimatDuzenle(idx)
 
-            self.scrollLayout.addLayout(talimatLayout)
-
-    def temizle(self):
-        while self.scrollLayout.count():
-            layoutItem = self.scrollLayout.takeAt(0)
-            if layoutItem.widget():
-                layoutItem.widget().deleteLater()
-            elif layoutItem.layout():
-                self._clearLayout(layoutItem.layout())
-
-    def _clearLayout(self, layout):
-        while layout.count():
-            item = layout.takeAt(0)
-            widget = item.widget()
-            if widget:
-                widget.deleteLater()
-            else:
-                self._clearLayout(item.layout())
+    def suruklemeSiralamaKaydet(self):
+        """Sürükle-bırak sonrası yeni sıralamayı kaydet"""
+        yeni_siralama = []
+        for i in range(self.suruklemeListe.count()):
+            item = self.suruklemeListe.item(i)
+            yeni_siralama.append(item.custom_data)
+        self.repo_data[TALIMATLAR] = yeni_siralama
+        self.jsonGuncelle()
+        # Sürükle-bırak listesindeki item metinlerini güncelle
+        for i in range(self.suruklemeListe.count()):
+            item = self.suruklemeListe.item(i)
+            item.setText(f"📋 {i + 1}: {kisaltMetin(item.custom_data)}")
+        show_success(self, "Sıralama kaydedildi.")
 
     def yenile(self):
         self.talimatListele()
@@ -265,15 +243,17 @@ class KavramDetayDialog(QDialog):
             self.setWindowTitle(f"{self.kavram_adi} Açıklamaları Düzenle")
         self.layout = QVBoxLayout(self)
 
-        # Kaydırılabilir alan oluştur
-        self.scrollArea = QScrollArea(self)
-        self.scrollAreaWidgetContents = QWidget()
-        self.scrollArea.setWidgetResizable(True)
-        self.scrollLayout = QVBoxLayout(self.scrollAreaWidgetContents)
-        self.scrollArea.setWidget(self.scrollAreaWidgetContents)
+        # Bilgi etiketi
+        self.bilgiLabel = surukle_bilgi_etiketi(self)
+        self.layout.addWidget(self.bilgiLabel)
+
+        # Sürükle-bırak listesi
+        self.suruklemeListe = SuruklemeListe(self)
+        self.suruklemeListe.itemDoubleClicked.connect(self.surukleListeItemDuzenle)
+        self.suruklemeListe.siralama_degisti.connect(self.suruklemeSiralamaKaydet)
         w, h = calculate_scroll_area_size(650, 300)
-        self.scrollArea.setMinimumSize(w, h)
-        self.layout.addWidget(self.scrollArea)
+        self.suruklemeListe.setMinimumSize(w, h)
+        self.layout.addWidget(self.suruklemeListe)
 
         self.aciklamaListele()
 
@@ -282,51 +262,37 @@ class KavramDetayDialog(QDialog):
         self.ekleBtn.clicked.connect(self.aciklamaEkle)
         self.layout.addWidget(self.ekleBtn)
 
-    def temizle(self):
-        while self.scrollLayout.count():
-            layoutItem = self.scrollLayout.takeAt(0)
-            if layoutItem.widget():
-                layoutItem.widget().deleteLater()
-            elif layoutItem.layout():
-                # Eğer layout içinde başka bir layout varsa, onu ve içindekileri temizle
-                self.temizleIcLayout(layoutItem.layout())
+    def surukleListeItemDuzenle(self, item):
+        """Sürükle-bırak listesinde çift tıklanan öğeyi düzenle"""
+        idx = self.suruklemeListe.row(item)
+        self.aciklamaDuzenle(idx)
 
-    def temizleIcLayout(self, layout):
-        while layout.count():
-            item = layout.takeAt(0)
-            widget = item.widget()
-            if widget:
-                widget.deleteLater()
-            elif item.layout():
-                self.temizleIcLayout(item.layout())
+    def suruklemeSiralamaKaydet(self):
+        """Sürükle-bırak sonrası yeni sıralamayı kaydet"""
+        yeni_siralama = []
+        for i in range(self.suruklemeListe.count()):
+            item = self.suruklemeListe.item(i)
+            yeni_siralama.append(item.custom_data)
+        self.kavram[ACIKLAMALAR] = yeni_siralama
+        self.parent().jsonGuncelle()
+        self._original_aciklamalar = list(self.kavram[ACIKLAMALAR])
+        # Sürükle-bırak listesindeki item metinlerini güncelle
+        for i in range(self.suruklemeListe.count()):
+            item = self.suruklemeListe.item(i)
+            item.setText(f"💬 {i + 1}: {kisaltMetin(item.custom_data)}")
+        show_success(self, "Sıralama kaydedildi.")
 
     def aciklamaListele(self):
-        self.temizle()
+        # Sürükle-bırak listesini doldur
+        self.suruklemeListe.clear()
         for i, aciklama in enumerate(self.kavram[ACIKLAMALAR]):
-            aciklamaLayout = QHBoxLayout()
-
-            aciklamaLabel = QLabel(kisaltMetin(aciklama), self)
-            aciklamaLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            aciklamaLabel.setToolTip(aciklama)
-            aciklamaLabel.setWordWrap(True)
-            aciklamaLabel.setSizePolicy(
-                QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
+            item = SuruklemeListeItem(
+                f"💬 {i + 1}: {kisaltMetin(aciklama)}",
+                data=aciklama,
+                index=i
             )
-            aciklamaLayout.addWidget(aciklamaLabel)
-
-            duzenleBtn = QPushButton("Düzenle", self)
-            duzenleBtn.setStyleSheet(GUNCELLE_BUTTON_STILI)
-            duzenleBtn.clicked.connect(
-                lambda checked, index=i: self.aciklamaDuzenle(index)
-            )
-            aciklamaLayout.addWidget(duzenleBtn)
-
-            silBtn = QPushButton("Sil", self)
-            silBtn.setStyleSheet(SIL_BUTONU_STILI)
-            silBtn.clicked.connect(lambda checked, index=i: self.aciklamaSil(index))
-            aciklamaLayout.addWidget(silBtn)
-
-            self.scrollLayout.addLayout(aciklamaLayout)
+            item.setToolTip(aciklama)
+            self.suruklemeListe.addItem(item)
 
     def aciklamaDuzenle(self, index):
         eski_aciklama = self.kavram[ACIKLAMALAR][index]
@@ -460,19 +426,18 @@ class KavramDialog(QDialog):
         self.kavramSayisiLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.layout.addWidget(self.kavramSayisiLabel)
 
-        # Kaydırılabilir alan oluştur
-        self.scrollArea = QScrollArea(self)
-        self.scrollAreaWidgetContents = QWidget()
-        self.scrollArea.setWidgetResizable(True)
-        self.scrollLayout = QVBoxLayout(self.scrollAreaWidgetContents)
-        self.scrollArea.setWidget(self.scrollAreaWidgetContents)
-        self.layout.addWidget(self.scrollArea)
-        self.scrollArea.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        )
-        # ScrollArea için minimum boyutu dinamik olarak belirle
+        # Bilgi etiketi
+        self.bilgiLabel = surukle_bilgi_etiketi(self)
+        self.layout.addWidget(self.bilgiLabel)
+
+        # Sürükle-bırak listesi
+        self.suruklemeListe = SuruklemeListe(self)
+        self.suruklemeListe.itemDoubleClicked.connect(self.surukleListeItemDuzenle)
+        self.suruklemeListe.siralama_degisti.connect(self.suruklemeSiralamaKaydet)
         w, h = calculate_scroll_area_size(650, 300)
-        self.scrollArea.setMinimumSize(w, h)
+        self.suruklemeListe.setMinimumSize(w, h)
+        self.layout.addWidget(self.suruklemeListe)
+
         self.yenile()
 
         # Ekle butonunu ekle
@@ -509,17 +474,12 @@ class KavramDialog(QDialog):
             self.clearFilters(is_clicked=False)
             return
         size = 0
-        for idx, kavram in enumerate(self.repo_data[KAVRAMLAR]):
-            layout = self.scrollLayout.itemAt(idx)
-            kavram = kavram[KAVRAM]
-            if isinstance(layout, QHBoxLayout):
-                match = (
-                    query.replace("İ", "i").lower() in kavram.replace("İ", "i").lower()
-                )
-                for i in range(layout.count()):
-                    widget = layout.itemAt(i).widget()
-                    if widget:
-                        widget.setVisible(match)
+        for idx, kavram_obj in enumerate(self.repo_data[KAVRAMLAR]):
+            item = self.suruklemeListe.item(idx)
+            if item:
+                kavram = kavram_obj[KAVRAM]
+                match = query.replace("İ", "i").lower() in kavram.replace("İ", "i").lower()
+                item.setHidden(not match)
                 if match:
                     size += 1
         if size == len(self.repo_data[KAVRAMLAR]):
@@ -532,53 +492,48 @@ class KavramDialog(QDialog):
             self.clearFiltersButton.hide()
 
     def clearFilters(self, is_clicked=True):
-        for i in range(self.scrollLayout.count()):
-            layout = self.scrollLayout.itemAt(i)
-            if isinstance(
-                layout, QHBoxLayout
-            ):  # Burayı QHBoxLayout olarak değiştirdik
-                for j in range(layout.count()):
-                    widget = layout.itemAt(j).widget()
-                    if widget:
-                        widget.show()
-        self.clearFiltersButton.hide()  # Temizle butonunu gizle
-        self.kavramSayisiLabel.setText(
-            f"Toplam {len(self.repo_data[KAVRAMLAR])} kavram"
-        )  # kavram sayısını etikette güncelle
-
-    def kavramListele(self):
-        self.temizle()
+        for i in range(self.suruklemeListe.count()):
+            self.suruklemeListe.item(i).setHidden(False)
+        self.clearFiltersButton.hide()
         self.kavramSayisiLabel.setText(
             f"Toplam {len(self.repo_data[KAVRAMLAR])} kavram"
         )
-        self.clearFiltersButton.hide()  # Temizle butonunu gizle
+
+    def kavramListele(self):
+        self.kavramSayisiLabel.setText(
+            f"Toplam {len(self.repo_data[KAVRAMLAR])} kavram"
+        )
+        self.clearFiltersButton.hide()
+
+        # Sürükle-bırak listesini doldur
+        self.suruklemeListe.clear()
         for i, kavram in enumerate(self.repo_data[KAVRAMLAR]):
-            kavramLayout = QHBoxLayout()
-
-            # Kavram adını gösteren buton
-            kavramBtn = QPushButton(kisaltMetin(kavram[KAVRAM]), self)
-            kavramBtn.setToolTip(kavram[KAVRAM])
-            kavramBtn.clicked.connect(
-                lambda checked, index=i: self.kavramDuzenle(index)
+            item = SuruklemeListeItem(
+                f"📚 {i + 1}: {kisaltMetin(kavram[KAVRAM])}",
+                data=kavram,
+                index=i
             )
-            kavramBtn.setStyleSheet("background-color: lightgreen; color: black;")
-            kavramLayout.addWidget(kavramBtn, 3)
+            item.setToolTip(kavram[KAVRAM])
+            self.suruklemeListe.addItem(item)
 
-            # Kavramı düzenleme butonu
-            duzenleBtn = QPushButton("Adı Düzenle", self)
-            duzenleBtn.setStyleSheet(GUNCELLE_BUTTON_STILI)
-            duzenleBtn.clicked.connect(
-                lambda checked, index=i: self.kavramAdiDuzenle(index)
-            )
-            kavramLayout.addWidget(duzenleBtn, 1)
+    def surukleListeItemDuzenle(self, item):
+        """Sürükle-bırak listesinde çift tıklanan öğeyi düzenle"""
+        idx = self.suruklemeListe.row(item)
+        self.kavramDuzenle(idx)
 
-            # Kavramı silme butonu
-            silBtn = QPushButton("Sil", self)
-            silBtn.setStyleSheet(SIL_BUTONU_STILI)
-            silBtn.clicked.connect(lambda checked, index=i: self.kavramSil(index))
-            kavramLayout.addWidget(silBtn, 1)
-
-            self.scrollLayout.addLayout(kavramLayout)
+    def suruklemeSiralamaKaydet(self):
+        """Sürükle-bırak sonrası yeni sıralamayı kaydet"""
+        yeni_siralama = []
+        for i in range(self.suruklemeListe.count()):
+            item = self.suruklemeListe.item(i)
+            yeni_siralama.append(item.custom_data)
+        self.repo_data[KAVRAMLAR] = yeni_siralama
+        self.jsonGuncelle()
+        # Sürükle-bırak listesindeki item metinlerini güncelle
+        for i in range(self.suruklemeListe.count()):
+            item = self.suruklemeListe.item(i)
+            item.setText(f"📚 {i + 1}: {kisaltMetin(item.custom_data[KAVRAM])}")
+        show_success(self, "Sıralama kaydedildi.")
 
     def kavramAdiDuzenle(self, index):
         eski_kavram = self.repo_data[KAVRAMLAR][index][KAVRAM]
@@ -595,23 +550,6 @@ class KavramDialog(QDialog):
             show_success(self, "Kavram adı başarıyla güncellendi.")
         elif ok and yeni_kavram == "":
             QMessageBox.warning(self, "Uyarı", "Kavram adı boş bırakılamaz.")
-
-    def temizle(self):
-        while self.scrollLayout.count():
-            layoutItem = self.scrollLayout.takeAt(0)
-            if layoutItem.widget():
-                layoutItem.widget().deleteLater()
-            elif layoutItem.layout():
-                self._clearLayout(layoutItem.layout())
-
-    def _clearLayout(self, layout):
-        while layout.count():
-            item = layout.takeAt(0)
-            widget = item.widget()
-            if widget:
-                widget.deleteLater()
-            else:
-                self._clearLayout(item.layout())
 
     def yenile(self):
         self.kavramListele()
@@ -685,8 +623,8 @@ class AciklamaDialog(QDialog):
         self.clearFiltersButton.clicked.connect(
             lambda: self.clearFilters(is_clicked=True)
         )
-        self.clearFiltersButton.setStyleSheet(TEMIZLE_BUTONU_STILI)  # Mavi arka plan
-        self.clearFiltersButton.hide()  # Başlangıçta temizle butonunu gizle
+        self.clearFiltersButton.setStyleSheet(TEMIZLE_BUTONU_STILI)
+        self.clearFiltersButton.hide()
         self.layout.addWidget(self.clearFiltersButton)
         self.aciklamaSayisiLabel = QLabel(self)
         self.aciklamaSayisiLabel.setText(
@@ -695,18 +633,18 @@ class AciklamaDialog(QDialog):
         self.aciklamaSayisiLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.layout.addWidget(self.aciklamaSayisiLabel)
 
-        # Kaydırılabilir alan oluştur
-        self.scrollArea = QScrollArea(self)
-        self.scrollAreaWidgetContents = QWidget()
-        self.scrollArea.setWidgetResizable(True)
-        self.scrollLayout = QVBoxLayout(self.scrollAreaWidgetContents)
-        self.scrollArea.setWidget(self.scrollAreaWidgetContents)
-        self.layout.addWidget(self.scrollArea)
-        self.scrollArea.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        )
+        # Bilgi etiketi
+        self.bilgiLabel = surukle_bilgi_etiketi(self)
+        self.layout.addWidget(self.bilgiLabel)
+
+        # Sürükle-bırak listesi
+        self.suruklemeListe = SuruklemeListe(self)
+        self.suruklemeListe.itemDoubleClicked.connect(self.surukleListeItemDuzenle)
+        self.suruklemeListe.siralama_degisti.connect(self.suruklemeSiralamaKaydet)
         w, h = calculate_scroll_area_size(580, 300)
-        self.scrollArea.setMinimumSize(w, h)
+        self.suruklemeListe.setMinimumSize(w, h)
+        self.layout.addWidget(self.suruklemeListe)
+
         self.yenile()
 
         # Ekle butonunu ekle
@@ -744,16 +682,13 @@ class AciklamaDialog(QDialog):
             return
         size = 0
         for idx, aciklama in enumerate(self.repo_data[ACIKLAMALAR]):
-            layout = self.scrollLayout.itemAt(idx)
-            if isinstance(layout, QHBoxLayout):
+            item = self.suruklemeListe.item(idx)
+            if item:
                 match = (
                     query.replace("İ", "i").lower()
                     in aciklama.replace("İ", "i").lower()
                 )
-                for i in range(layout.count()):
-                    widget = layout.itemAt(i).widget()
-                    if widget:
-                        widget.setVisible(match)
+                item.setHidden(not match)
                 if match:
                     size += 1
         if size == len(self.repo_data[ACIKLAMALAR]):
@@ -766,59 +701,48 @@ class AciklamaDialog(QDialog):
             self.clearFiltersButton.hide()
 
     def clearFilters(self, is_clicked=True):
-        for i in range(self.scrollLayout.count()):
-            layout = self.scrollLayout.itemAt(i)
-            if isinstance(
-                layout, QHBoxLayout
-            ):  # Burayı QHBoxLayout olarak değiştirdik
-                for j in range(layout.count()):
-                    widget = layout.itemAt(j).widget()
-                    if widget:
-                        widget.show()
-        self.clearFiltersButton.hide()  # Temizle butonunu gizle
+        for i in range(self.suruklemeListe.count()):
+            self.suruklemeListe.item(i).setHidden(False)
+        self.clearFiltersButton.hide()
         self.aciklamaSayisiLabel.setText(
             f"Toplam {len(self.repo_data[ACIKLAMALAR])} açıklama"
-        )  # Açıklama sayısını etikette güncelle self.aciklamaSayisiLabel.setText(f'Toplam {len(self.repo_data[ACIKLAMALAR])} açıklama')  # Açıklama sayısını etikette güncelle
+        )
 
     def aciklamaListele(self):
-        self.temizle()
         self.aciklamaSayisiLabel.setText(
             f"Toplam {len(self.repo_data[ACIKLAMALAR])} açıklama"
-        )  # Açıklama sayısını etikette güncelle self.aciklamaSayisiLabel.setText(f'Toplam {len(self.repo_data[ACIKLAMALAR])} açıklama')  # Açıklama sayısını etikette güncelle
-        self.clearFiltersButton.hide()  # Temizle butonunu gizle
+        )
+        self.clearFiltersButton.hide()
+
+        # Sürükle-bırak listesini doldur
+        self.suruklemeListe.clear()
         for i, aciklama in enumerate(self.repo_data[ACIKLAMALAR]):
-            aciklamaLayout = QHBoxLayout()
-
-            aciklamaBtn = QPushButton(kisaltMetin(aciklama), self)
-            # aciklamaBtn.setToolTip(aciklama)
-            aciklamaBtn.clicked.connect(
-                lambda checked, index=i: self.aciklamaDuzenle(index)
+            item = SuruklemeListeItem(
+                f"📝 {i + 1}: {kisaltMetin(aciklama)}",
+                data=aciklama,
+                index=i
             )
-            aciklamaBtn.setStyleSheet(GUNCELLE_BUTTON_STILI)
-            aciklamaLayout.addWidget(aciklamaBtn, 3)
-            silBtn = QPushButton("Sil", self)
-            silBtn.setStyleSheet(SIL_BUTONU_STILI)
-            silBtn.clicked.connect(lambda checked, index=i: self.aciklamaSil(index))
-            aciklamaLayout.addWidget(silBtn, 1)
+            item.setToolTip(aciklama)
+            self.suruklemeListe.addItem(item)
 
-            self.scrollLayout.addLayout(aciklamaLayout)
+    def surukleListeItemDuzenle(self, item):
+        """Sürükle-bırak listesinde çift tıklanan öğeyi düzenle"""
+        idx = self.suruklemeListe.row(item)
+        self.aciklamaDuzenle(idx)
 
-    def temizle(self):
-        while self.scrollLayout.count():
-            layoutItem = self.scrollLayout.takeAt(0)
-            if layoutItem.widget():
-                layoutItem.widget().deleteLater()
-            elif layoutItem.layout():
-                self._clearLayout(layoutItem.layout())
-
-    def _clearLayout(self, layout):
-        while layout.count():
-            item = layout.takeAt(0)
-            widget = item.widget()
-            if widget:
-                widget.deleteLater()
-            else:
-                self._clearLayout(item.layout())
+    def suruklemeSiralamaKaydet(self):
+        """Sürükle-bırak sonrası yeni sıralamayı kaydet"""
+        yeni_siralama = []
+        for i in range(self.suruklemeListe.count()):
+            item = self.suruklemeListe.item(i)
+            yeni_siralama.append(item.custom_data)
+        self.repo_data[ACIKLAMALAR] = yeni_siralama
+        self.jsonGuncelle()
+        # Sürükle-bırak listesindeki item metinlerini güncelle
+        for i in range(self.suruklemeListe.count()):
+            item = self.suruklemeListe.item(i)
+            item.setText(f"📝 {i + 1}: {kisaltMetin(item.custom_data)}")
+        show_success(self, "Sıralama kaydedildi.")
 
     def yenile(self):
         self.aciklamaListele()

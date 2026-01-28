@@ -18,6 +18,7 @@ import json
 from screen_utils import apply_minimum_size, calculate_scroll_area_size
 from close_event import closeEventHandler
 from toast_notification import show_success
+from undo_manager import UndoManager
 
 
 class DonemEkleGuncelleWindow(QDialog):
@@ -25,6 +26,7 @@ class DonemEkleGuncelleWindow(QDialog):
         super().__init__(parent)
         self.json_dosyasi = DONEMLER_JSON_PATH
         self.repo_data = self.jsonVeriOku()
+        self.undo_manager = UndoManager()
         self.setModal(True)
         self.jsonKontrol()
         self.initUI()
@@ -136,8 +138,12 @@ class DonemEkleGuncelleWindow(QDialog):
             QMessageBox.StandardButton.No,
         )
         if emin_mi == QMessageBox.StandardButton.Yes:
+            # Silmeden önce undo için kaydet
+            silinen_donem = self.repo_data[DONEMLER][index]
+            self.undo_manager.push_deleted(index, silinen_donem, "donem")
             del self.repo_data[DONEMLER][index]
             self.jsonGuncelle()
+            show_success(self, "Dönem silindi. (Geri almak için Ctrl+Z)")
 
     def searchDonem(self, query):
         if query == "":
@@ -196,12 +202,34 @@ class DonemEkleGuncelleWindow(QDialog):
 
     def keyPressEvent(self, event):
         if (
+            event.key() == Qt.Key.Key_Z
+            and event.modifiers() & Qt.KeyboardModifier.ControlModifier
+        ):
+            self.undoSil()
+        elif (
             event.key() == Qt.Key.Key_F
             and event.modifiers() & Qt.KeyboardModifier.ControlModifier
         ):
             text, ok = QInputDialog.getText(self, "Arama", "Aranacak dönem:")
             if ok:
                 self.searchDonem(text)
+        else:
+            super().keyPressEvent(event)
+
+    def undoSil(self):
+        """Son silinen dönemi geri al"""
+        if not self.undo_manager.can_undo():
+            return
+        deleted = self.undo_manager.pop_deleted()
+        if deleted:
+            index, donem, _ = deleted
+            # Silinen dönemi orijinal yerine geri ekle
+            if index <= len(self.repo_data[DONEMLER]):
+                self.repo_data[DONEMLER].insert(index, donem)
+            else:
+                self.repo_data[DONEMLER].append(donem)
+            self.jsonGuncelle()
+            show_success(self, "Dönem geri alındı.")
 
 
 class DonemDuzenlemeWindow(QDialog):

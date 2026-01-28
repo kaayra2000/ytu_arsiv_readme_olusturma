@@ -25,6 +25,7 @@ from close_event import closeEventHandler
 from coklu_satir_girdi_dialog import SatirAtlayanInputDialog
 from screen_utils import apply_minimum_size
 from toast_notification import show_success
+from undo_manager import UndoManager
 
 # Hoca adlarını ve kısaltmalarını hazırla
 def hoca_sirala(hoca):
@@ -41,6 +42,7 @@ class DersEkleGuncelleWindow(QDialog):
         self.setModal(True)
         self.parent = parent
         self.is_programmatic_close = False
+        self.undo_manager = UndoManager()
         self.data = self.jsonDosyasiniYukle()
         if self.ilklendir():
             self.jsonKaydet()
@@ -144,10 +146,33 @@ class DersEkleGuncelleWindow(QDialog):
             json.dump(self.data, file, ensure_ascii=False, indent=4)
 
     def keyPressEvent(self, event):
-        if event.key() == Qt.Key.Key_F and event.modifiers() & Qt.KeyboardModifier.ControlModifier:
+        if (
+            event.key() == Qt.Key.Key_Z
+            and event.modifiers() & Qt.KeyboardModifier.ControlModifier
+        ):
+            self.undoSil()
+        elif event.key() == Qt.Key.Key_F and event.modifiers() & Qt.KeyboardModifier.ControlModifier:
             text, ok = QInputDialog.getText(self, "Arama", "Aranacak ders:")
             if ok:
                 self.searchDersler(text)
+        else:
+            super().keyPressEvent(event)
+
+    def undoSil(self):
+        """Son silinen dersi geri al"""
+        if not self.undo_manager.can_undo():
+            return
+        deleted = self.undo_manager.pop_deleted()
+        if deleted:
+            index, ders, _ = deleted
+            # Silinen dersi geri ekle
+            if index <= len(self.data[DERSLER]):
+                self.data[DERSLER].insert(index, ders)
+            else:
+                self.data[DERSLER].append(ders)
+            self.jsonKaydet()
+            self.dersleriYenile()
+            show_success(self, "Ders geri alındı.")
 
     def searchDersler(self, query):
         size = 0
@@ -981,8 +1006,11 @@ class DersDuzenlemeWindow(QDialog):
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
         if emin_mi == QMessageBox.StandardButton.Yes:
+            # Silmeden önce undo için kaydet
+            ders_index = self.data[DERSLER].index(self.ders)
+            self.parent.undo_manager.push_deleted(ders_index, self.ders, "ders")
             self.data[DERSLER].remove(self.ders)
-            self.kaydetVeKapat()
+            self.kaydetVeKapat(silindi=True)
 
     def hocaDersleriniGuncelle(self, ders_adi, veren_hocalar):
         # JSON dosyasını aç ve verileri yükle
@@ -1015,7 +1043,7 @@ class DersDuzenlemeWindow(QDialog):
         with open(json_dosyasi, "w", encoding="utf-8") as file:
             json.dump(data, file, ensure_ascii=False, indent=4)
 
-    def kaydetVeKapat(self):
+    def kaydetVeKapat(self, silindi=False):
         # Değişiklikleri JSON dosyasına kaydet ve pencereyi kapat
         try:
             with open(DERSLER_JSON_PATH, "w", encoding="utf-8") as file:
@@ -1023,6 +1051,9 @@ class DersDuzenlemeWindow(QDialog):
             self.parent.dersleriYenile()
             self.is_programmatic_close = True
             self.close()
-            show_success(self.parent, "Ders kaydedildi!")
+            if silindi:
+                show_success(self.parent, "Ders silindi! (Geri almak için Ctrl+Z)")
+            else:
+                show_success(self.parent, "Ders kaydedildi!")
         except Exception as e:
             QMessageBox.critical(self, "Hata", f"Dosya yazılırken bir hata oluştu: {e}")

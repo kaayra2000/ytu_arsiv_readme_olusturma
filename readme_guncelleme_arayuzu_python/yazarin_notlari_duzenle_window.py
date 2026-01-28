@@ -19,6 +19,7 @@ from PyQt6.QtGui import QIcon, QGuiApplication
 from close_event import closeEventHandler
 from screen_utils import apply_minimum_size
 from toast_notification import show_success
+from undo_manager import UndoManager
 
 
 class YazarinNotlariWindow(QDialog):
@@ -26,6 +27,7 @@ class YazarinNotlariWindow(QDialog):
         super().__init__(parent)
         self.setModal(True)
         self.is_programmatic_close = False
+        self.undo_manager = UndoManager()
         self.data = self.jsonDosyasiniYukle()
         if self.ilklendir():
             self.jsonKaydet()
@@ -82,12 +84,35 @@ class YazarinNotlariWindow(QDialog):
 
     def keyPressEvent(self, event):
         if (
+            event.key() == Qt.Key.Key_Z
+            and event.modifiers() & Qt.KeyboardModifier.ControlModifier
+        ):
+            self.undoSil()
+        elif (
             event.key() == Qt.Key.Key_F
             and event.modifiers() & Qt.KeyboardModifier.ControlModifier
         ):
             text, ok = QInputDialog.getText(self, "Arama", "Aranacak kelime:")
             if ok:
                 self.searchNotes(text)
+        else:
+            super().keyPressEvent(event)
+
+    def undoSil(self):
+        """Son silinen notu geri al"""
+        if not self.undo_manager.can_undo():
+            return
+        deleted = self.undo_manager.pop_deleted()
+        if deleted:
+            index, not_, _ = deleted
+            # Silinen notu orijinal yerine geri ekle
+            if index <= len(self.data[ACIKLAMALAR]):
+                self.data[ACIKLAMALAR].insert(index, not_)
+            else:
+                self.data[ACIKLAMALAR].append(not_)
+            self.jsonKaydet()
+            self.notlariYenile()
+            show_success(self, "Not geri alındı.")
 
     def jsonKaydet(self):
         try:
@@ -297,6 +322,9 @@ class NotDuzenleWindow(QDialog):
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             )
             if emin_mi == QMessageBox.StandardButton.Yes:
+                # Silmeden önce undo için kaydet
+                silinen_not = self.data[ACIKLAMALAR][self.idx]
+                self.parent.undo_manager.push_deleted(self.idx, silinen_not, "not")
                 del self.data[ACIKLAMALAR][self.idx]
                 self.kaydetVeKapat()
 
@@ -308,6 +336,6 @@ class NotDuzenleWindow(QDialog):
             self.parent.notlariYenile()
             self.is_programmatic_close = True
             self.close()
-            show_success(self.parent, "Not silindi!")
+            show_success(self.parent, "Not silindi! (Geri almak için Ctrl+Z)")
         except Exception as e:
             QMessageBox.critical(self, "Hata", f"Dosya yazılırken bir hata oluştu: {e}")

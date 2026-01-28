@@ -20,6 +20,7 @@ from metin_islemleri import kisaltMetin
 from PyQt6.QtGui import QIcon
 from screen_utils import apply_minimum_size, calculate_scroll_area_size
 from toast_notification import show_success
+from undo_manager import UndoManager
 
 
 class TalimatDialog(QDialog):
@@ -27,6 +28,7 @@ class TalimatDialog(QDialog):
         super().__init__(parent)
         self.json_dosyasi = json_dosyasi
         self.repo_data = self.jsonVeriOku()
+        self.undo_manager = UndoManager()
         self.setModal(True)
         self.initUI()
         if os.path.exists(OSMANLI_ICO_PATH):
@@ -71,12 +73,19 @@ class TalimatDialog(QDialog):
 
     def keyPressEvent(self, event):
         if (
+            event.key() == Qt.Key.Key_Z
+            and event.modifiers() & Qt.KeyboardModifier.ControlModifier
+        ):
+            self.undoSil()
+        elif (
             event.key() == Qt.Key.Key_F
             and event.modifiers() & Qt.KeyboardModifier.ControlModifier
         ):
             text, ok = QInputDialog.getText(self, "Arama", "Aranacak talimat:")
             if ok:
                 self.searchTalimat(text)
+        else:
+            super().keyPressEvent(event)
 
     def searchTalimat(self, query):
         if query == "":
@@ -195,9 +204,27 @@ class TalimatDialog(QDialog):
             QMessageBox.StandardButton.No,
         )
         if emin_mi == QMessageBox.StandardButton.Yes:
+            # Silmeden önce undo için kaydet
+            silinen_talimat = self.repo_data[TALIMATLAR][index]
+            self.undo_manager.push_deleted(index, silinen_talimat, "talimat")
             del self.repo_data[TALIMATLAR][index]
             self.jsonGuncelle()
-            show_success(self, "Talimat başarıyla silindi.")
+            show_success(self, "Talimat başarıyla silindi. (Geri almak için Ctrl+Z)")
+
+    def undoSil(self):
+        """Son silinen talimatı geri al"""
+        if not self.undo_manager.can_undo():
+            return
+        deleted = self.undo_manager.pop_deleted()
+        if deleted:
+            index, talimat, _ = deleted
+            # Silinen talimatı orijinal yerine geri ekle
+            if index <= len(self.repo_data[TALIMATLAR]):
+                self.repo_data[TALIMATLAR].insert(index, talimat)
+            else:
+                self.repo_data[TALIMATLAR].append(talimat)
+            self.jsonGuncelle()
+            show_success(self, "Talimat geri alındı.")
 
     def talimatEkle(self):
         yeni_talimat, ok = SatirAtlayanInputDialog.getMultiLineText(
@@ -225,6 +252,7 @@ class KavramDetayDialog(QDialog):
         self.kavram = self.repo_data[KAVRAMLAR][self.kavram_index]
         # Değişiklik takibi için orijinal verilerin kopyasını sakla
         self._original_aciklamalar = list(self.kavram[ACIKLAMALAR])
+        self.undo_manager = UndoManager()
         self.setModal(True)
         self.initUI()
         if os.path.exists(SELCUKLU_ICO_PATH):
@@ -325,11 +353,40 @@ class KavramDetayDialog(QDialog):
             QMessageBox.StandardButton.No,
         )
         if emin_mi == QMessageBox.StandardButton.Yes:
+            # Silmeden önce undo için kaydet
+            silinen_aciklama = self.kavram[ACIKLAMALAR][index]
+            self.undo_manager.push_deleted(index, silinen_aciklama, "aciklama")
             del self.kavram[ACIKLAMALAR][index]
             self.parent().jsonGuncelle()
             self._original_aciklamalar = list(self.kavram[ACIKLAMALAR])  # Güncel durumu kaydet
             self.aciklamaListele()
-            show_success(self, "Açıklama başarıyla silindi.")
+            show_success(self, "Açıklama başarıyla silindi. (Geri almak için Ctrl+Z)")
+
+    def undoSil(self):
+        """Son silinen açıklamayı geri al"""
+        if not self.undo_manager.can_undo():
+            return
+        deleted = self.undo_manager.pop_deleted()
+        if deleted:
+            index, aciklama, _ = deleted
+            # Silinen açıklamayı orijinal yerine geri ekle
+            if index <= len(self.kavram[ACIKLAMALAR]):
+                self.kavram[ACIKLAMALAR].insert(index, aciklama)
+            else:
+                self.kavram[ACIKLAMALAR].append(aciklama)
+            self.parent().jsonGuncelle()
+            self._original_aciklamalar = list(self.kavram[ACIKLAMALAR])
+            self.aciklamaListele()
+            show_success(self, "Açıklama geri alındı.")
+
+    def keyPressEvent(self, event):
+        if (
+            event.key() == Qt.Key.Key_Z
+            and event.modifiers() & Qt.KeyboardModifier.ControlModifier
+        ):
+            self.undoSil()
+        else:
+            super().keyPressEvent(event)
 
     def aciklamaEkle(self):
         yeni_aciklama, ok = SatirAtlayanInputDialog.getMultiLineText(
@@ -383,6 +440,7 @@ class KavramDialog(QDialog):
         super().__init__(parent)
         self.json_dosyasi = json_dosyasi
         self.repo_data = self.jsonVeriOku()
+        self.undo_manager = UndoManager()
         self.setModal(True)
         self.initUI()
         if os.path.exists(OSMANLI_ICO_PATH):
@@ -432,12 +490,19 @@ class KavramDialog(QDialog):
 
     def keyPressEvent(self, event):
         if (
+            event.key() == Qt.Key.Key_Z
+            and event.modifiers() & Qt.KeyboardModifier.ControlModifier
+        ):
+            self.undoSil()
+        elif (
             event.key() == Qt.Key.Key_F
             and event.modifiers() & Qt.KeyboardModifier.ControlModifier
         ):
             text, ok = QInputDialog.getText(self, "Arama", "Aranacak kavram:")
             if ok:
                 self.searchKavram(text)
+        else:
+            super().keyPressEvent(event)
 
     def searchKavram(self, query):
         if query == "":
@@ -567,9 +632,27 @@ class KavramDialog(QDialog):
             QMessageBox.StandardButton.No,
         )
         if emin_mi == QMessageBox.StandardButton.Yes:
+            # Silmeden önce undo için kaydet
+            silinen_kavram = self.repo_data[KAVRAMLAR][index]
+            self.undo_manager.push_deleted(index, silinen_kavram, "kavram")
             del self.repo_data[KAVRAMLAR][index]
             self.jsonGuncelle()
-            show_success(self, "Kavram başarıyla silindi.")
+            show_success(self, "Kavram başarıyla silindi. (Geri almak için Ctrl+Z)")
+
+    def undoSil(self):
+        """Son silinen kavramı geri al"""
+        if not self.undo_manager.can_undo():
+            return
+        deleted = self.undo_manager.pop_deleted()
+        if deleted:
+            index, kavram, _ = deleted
+            # Silinen kavramı orijinal yerine geri ekle
+            if index <= len(self.repo_data[KAVRAMLAR]):
+                self.repo_data[KAVRAMLAR].insert(index, kavram)
+            else:
+                self.repo_data[KAVRAMLAR].append(kavram)
+            self.jsonGuncelle()
+            show_success(self, "Kavram geri alındı.")
 
     def kavramEkle(self):
         yeni_kavram, ok = QInputDialog.getText(self, "Kavram Ekle", "Yeni Kavram:")
@@ -589,6 +672,7 @@ class AciklamaDialog(QDialog):
         super().__init__(parent)
         self.json_dosyasi = json_dosyasi
         self.repo_data = self.jsonVeriOku()
+        self.undo_manager = UndoManager()
         self.setModal(True)
         self.initUI()
         if os.path.exists(OSMANLI_ICO_PATH):
@@ -640,12 +724,19 @@ class AciklamaDialog(QDialog):
 
     def keyPressEvent(self, event):
         if (
+            event.key() == Qt.Key.Key_Z
+            and event.modifiers() & Qt.KeyboardModifier.ControlModifier
+        ):
+            self.undoSil()
+        elif (
             event.key() == Qt.Key.Key_F
             and event.modifiers() & Qt.KeyboardModifier.ControlModifier
         ):
             text, ok = QInputDialog.getText(self, "Arama", "Aranacak açıklama:")
             if ok:
                 self.searchAciklama(text)
+        else:
+            super().keyPressEvent(event)
 
     def searchAciklama(self, query):
         if query == "":
@@ -755,9 +846,27 @@ class AciklamaDialog(QDialog):
             QMessageBox.StandardButton.No,
         )
         if emin_mi == QMessageBox.StandardButton.Yes:
+            # Silmeden önce undo için kaydet
+            silinen_aciklama = self.repo_data[ACIKLAMALAR][index]
+            self.undo_manager.push_deleted(index, silinen_aciklama, "aciklama")
             del self.repo_data[ACIKLAMALAR][index]
             self.jsonGuncelle()
-            show_success(self, "Açıklama başarıyla silindi.")
+            show_success(self, "Açıklama başarıyla silindi. (Geri almak için Ctrl+Z)")
+
+    def undoSil(self):
+        """Son silinen açıklamayı geri al"""
+        if not self.undo_manager.can_undo():
+            return
+        deleted = self.undo_manager.pop_deleted()
+        if deleted:
+            index, aciklama, _ = deleted
+            # Silinen açıklamayı orijinal yerine geri ekle
+            if index <= len(self.repo_data[ACIKLAMALAR]):
+                self.repo_data[ACIKLAMALAR].insert(index, aciklama)
+            else:
+                self.repo_data[ACIKLAMALAR].append(aciklama)
+            self.jsonGuncelle()
+            show_success(self, "Açıklama geri alındı.")
 
     def aciklamaEkle(self):
         yeni_aciklama, ok = SatirAtlayanInputDialog.getMultiLineText(

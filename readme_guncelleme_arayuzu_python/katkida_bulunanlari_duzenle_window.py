@@ -22,6 +22,7 @@ from close_event import closeEventHandler
 from katkida_bulunan_ekle_window import BaseKatkidaBulunanWindow
 from toast_notification import show_success
 from link_kontrol_window import LinkKontrolWindow
+from undo_manager import UndoManager
 
 
 
@@ -30,6 +31,7 @@ class KatkidaBulunanGuncelleWindow(QDialog):
         super().__init__(parent)
         self.setModal(True)
         self.is_programmatic_close = False
+        self.undo_manager = UndoManager()
         self.title = "Katkıda Bulunanları Ekle/Güncelle"
         # JSON dosyasını oku
         self.data = self.jsonDosyasiniYukle()
@@ -170,12 +172,35 @@ class KatkidaBulunanGuncelleWindow(QDialog):
 
     def keyPressEvent(self, event):
         if (
+            event.key() == Qt.Key.Key_Z
+            and event.modifiers() & Qt.KeyboardModifier.ControlModifier
+        ):
+            self.undoSil()
+        elif (
             event.key() == Qt.Key.Key_F
             and event.modifiers() & Qt.KeyboardModifier.ControlModifier
         ):
             text, ok = QInputDialog.getText(self, "Arama", "Aranacak kelime:")
             if ok:
                 self.searchNotes(text)
+        else:
+            super().keyPressEvent(event)
+
+    def undoSil(self):
+        """Son silinen katkıda bulunanı geri al"""
+        if not self.undo_manager.can_undo():
+            return
+        deleted = self.undo_manager.pop_deleted()
+        if deleted:
+            index, kisi, _ = deleted
+            # Silinen kişiyi geri ekle
+            if index <= len(self.data[KATKIDA_BULUNANLAR]):
+                self.data[KATKIDA_BULUNANLAR].insert(index, kisi)
+            else:
+                self.data[KATKIDA_BULUNANLAR].append(kisi)
+            self.jsonDosyasiniKaydet()
+            self.butonlariYenile()
+            show_success(self, "Katkıda bulunan geri alındı.")
 
     def clearFilters(self, is_clicked=True):
         for i in range(self.layout.count()):
@@ -323,6 +348,10 @@ class KatkidaBulunanDuzenleWindow(BaseKatkidaBulunanWindow):
                 index = self.data[KATKIDA_BULUNANLAR].index(
                     self.kisi
                 )  # Kişinin index'ini bul
+                
+                # Silmeden önce undo için kaydet
+                self.parent.undo_manager.push_deleted(index, self.kisi, "katkida_bulunan")
+                
                 del self.data[KATKIDA_BULUNANLAR][index]  # Kişiyi listeden sil
 
                 # JSON dosyasını güncelle (Eğer dosyaya kaydedilmesi gerekiyorsa)
@@ -332,6 +361,7 @@ class KatkidaBulunanDuzenleWindow(BaseKatkidaBulunanWindow):
                 # Ana penceredeki listeyi yenile
                 self.parent.butonlariYenile()
                 self.is_programmatic_close = True
+                show_success(self.parent, "Katkıda bulunan silindi. (Geri almak için Ctrl+Z)")
                 self.close()
 
             except ValueError:

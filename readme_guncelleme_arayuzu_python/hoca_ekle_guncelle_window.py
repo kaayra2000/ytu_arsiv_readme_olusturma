@@ -28,6 +28,7 @@ from screen_utils import apply_minimum_size
 from close_event import closeEventHandler
 from toast_notification import show_success
 from link_kontrol_window import LinkKontrolWindow
+from undo_manager import UndoManager
 
 
 class HocaEkleGuncelleWindow(QDialog):
@@ -35,6 +36,7 @@ class HocaEkleGuncelleWindow(QDialog):
         super().__init__(parent)
         self.setModal(True)
         self.is_programmatic_close = False
+        self.undo_manager = UndoManager()
         self.data = self.jsonDosyasiniYukle()
         self.initial_data = copy.deepcopy(self.data)
         if self.ilklendir():
@@ -153,12 +155,35 @@ class HocaEkleGuncelleWindow(QDialog):
 
     def keyPressEvent(self, event):
         if (
+            event.key() == Qt.Key.Key_Z
+            and event.modifiers() & Qt.KeyboardModifier.ControlModifier
+        ):
+            self.undoSil()
+        elif (
             event.key() == Qt.Key.Key_F
             and event.modifiers() & Qt.KeyboardModifier.ControlModifier
         ):
             text, ok = QInputDialog.getText(self, "Arama", "Aranacak hoca:")
             if ok:
                 self.searchHocalar(text)
+        else:
+            super().keyPressEvent(event)
+
+    def undoSil(self):
+        """Son silinen hocayı geri al"""
+        if not self.undo_manager.can_undo():
+            return
+        deleted = self.undo_manager.pop_deleted()
+        if deleted:
+            index, hoca, _ = deleted
+            # Silinen hocayı geri ekle
+            if index <= len(self.data[HOCALAR]):
+                self.data[HOCALAR].insert(index, hoca)
+            else:
+                self.data[HOCALAR].append(hoca)
+            self.jsonKaydet()
+            self.hocalariYenile()
+            show_success(self, "Hoca geri alındı.")
 
     # Filtreleri temizleme fonksiyonu
     def clearFilters(self, is_clicked=True):
@@ -575,8 +600,11 @@ class HocaDuzenlemeWindow(QDialog):
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
         if emin_mi == QMessageBox.StandardButton.Yes and self.hoca:
+            # Silmeden önce undo için kaydet
+            hoca_index = self.data[HOCALAR].index(self.hoca)
+            self.parent.undo_manager.push_deleted(hoca_index, self.hoca, "hoca")
             self.data[HOCALAR].remove(self.hoca)
-            self.kaydetVeKapat()
+            self.kaydetVeKapat(silindi=True)
 
     def derslereHocayiEkle(self):
         secilen_dersler = self.secilenDersleriDondur()
@@ -614,7 +642,7 @@ class HocaDuzenlemeWindow(QDialog):
         except Exception as e:
             QMessageBox.critical(self, "Hata", f"Dosya işlenirken bir hata oluştu: {e}")
 
-    def kaydetVeKapat(self):
+    def kaydetVeKapat(self, silindi=False):
         # Değişiklikleri JSON dosyasına kaydet ve pencereyi kapat
         try:
             self.derslereHocayiEkle()
@@ -622,7 +650,10 @@ class HocaDuzenlemeWindow(QDialog):
                 json.dump(self.data, file, ensure_ascii=False, indent=4)
             self.parent.hocalariYenile()
             self.is_programmatic_close = True
-            show_success(self.parent, "Hoca başarıyla kaydedildi.")
+            if silindi:
+                show_success(self.parent, "Hoca başarıyla silindi. (Geri almak için Ctrl+Z)")
+            else:
+                show_success(self.parent, "Hoca başarıyla kaydedildi.")
             self.close()
         except Exception as e:
             QMessageBox.critical(self, "Hata", f"Dosya yazılırken bir hata oluştu: {e}")

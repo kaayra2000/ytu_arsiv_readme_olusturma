@@ -9,7 +9,9 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QLabel,
     QFileDialog,
+    QFrame,
 )
+from PyQt6.QtCore import Qt
 from metin_islemleri import elideText
 import json
 import os
@@ -24,6 +26,98 @@ from degiskenler import (
     BIR_UST_DIZIN,
     MAAS_ISTATISTIKLERI_TXT_ADI,
 )
+
+
+class DosyaCakismaDialog(QDialog):
+    """
+    SOLID SRP: Dosya çakışması durumunda kullanıcı seçimi almaktan sorumlu.
+    Kullanıcı dostu arayüz ile seçenekleri sunar.
+    """
+    
+    # Seçim sabitleri (OCP: Genişletilebilir)
+    YEDEKLE = "yedekle"
+    KORU = "koru"
+    IPTAL = "iptal"
+    
+    def __init__(self, dosya_adi, parent=None):
+        super().__init__(parent)
+        self.dosya_adi = dosya_adi
+        self.secim = None
+        self._init_ui()
+    
+    def _init_ui(self):
+        self.setWindowTitle("⚠️ Dosya Çakışması")
+        self.setObjectName("dosyaCakismaDialog")
+        self.setMinimumWidth(450)
+        self.setModal(True)
+        
+        layout = QVBoxLayout(self)
+        layout.setSpacing(15)
+        layout.setContentsMargins(20, 20, 20, 20)
+        
+        # Uyarı başlığı
+        baslik = QLabel(f"📁 '{self.dosya_adi}'")
+        baslik.setObjectName("cakismaBaslik")
+        baslik.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(baslik)
+        
+        # Açıklama
+        aciklama = QLabel(
+            "Hedef dizinde bu dosya zaten mevcut.\n"
+            "Ne yapmak istediğinizi seçin:"
+        )
+        aciklama.setObjectName("cakismaAciklama")
+        aciklama.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(aciklama)
+        
+        # Ayırıcı çizgi
+        ayirici = QFrame()
+        ayirici.setFrameShape(QFrame.Shape.HLine)
+        ayirici.setObjectName("cakismaAyirici")
+        layout.addWidget(ayirici)
+        
+        # Butonlar
+        self._butonlari_ekle(layout)
+    
+    def _butonlari_ekle(self, layout):
+        """SRP: Buton oluşturma - stiller QSS'ten alınır."""
+        
+        # Yedekle ve Taşı butonu
+        self.yedekle_btn = QPushButton("📦 Mevcut Dosyayı Yedekle ve Taşı")
+        self.yedekle_btn.setObjectName("yedekleBtn")
+        self.yedekle_btn.setToolTip(
+            "Mevcut dosya '_yedek' eki ile yeniden adlandırılır,\n"
+            "ardından yeni dosya bu konuma taşınır."
+        )
+        self.yedekle_btn.clicked.connect(lambda: self._secim_yap(self.YEDEKLE))
+        layout.addWidget(self.yedekle_btn)
+        
+        # Koru butonu
+        self.koru_btn = QPushButton("🛡️ Mevcut Dosyayı Koru (Atla)")
+        self.koru_btn.setObjectName("koruBtn")
+        self.koru_btn.setToolTip(
+            "Mevcut dosya olduğu gibi kalır,\n"
+            "yeni dosya taşınmaz."
+        )
+        self.koru_btn.clicked.connect(lambda: self._secim_yap(self.KORU))
+        layout.addWidget(self.koru_btn)
+        
+        # İptal butonu
+        self.iptal_btn = QPushButton("❌ İptal")
+        self.iptal_btn.setObjectName("iptalBtn")
+        self.iptal_btn.setToolTip("Tüm işlemi iptal et.")
+        self.iptal_btn.clicked.connect(lambda: self._secim_yap(self.IPTAL))
+        layout.addWidget(self.iptal_btn)
+    
+    def _secim_yap(self, secim):
+        """Kullanıcı seçimini kaydet ve diyaloğu kapat."""
+        self.secim = secim
+        self.accept()
+    
+    def kullanici_secimi_al(self):
+        """Diyaloğu göster ve kullanıcı seçimini döndür."""
+        self.exec()
+        return self.secim if self.secim else self.IPTAL
 
 
 class KonfigurasyonDialog(QDialog):
@@ -97,22 +191,46 @@ class KonfigurasyonDialog(QDialog):
         self.klasorAc(self.jsonDepoButton, self.jsonDepoButton.toolTip())
 
     def dosya_kontrol_et_ve_degistir(self, secilenYol, dosya_adi):
+        """
+        Hedef dizinde aynı isimde dosya varsa kullanıcıya seçenek sunar.
+        SRP: Koordinasyon görevi - diyalog ve yedekleme işlemlerini delege eder.
+        
+        Returns:
+            True: Dosya taşınmalı (mevcut yedeklendi veya mevcut yoktu)
+            False: Dosya taşınmamalı (kullanıcı mevcut dosyayı korumak istedi)
+            None: İşlem iptal edildi
+        """
         tam_yol = os.path.join(secilenYol, dosya_adi)
-        if os.path.exists(tam_yol):
-            # Kullanıcıya soru sor
-            # Dosya adını ve uzantısını ayır
-            dosya_adi, uzanti = os.path.splitext(tam_yol)
-
-            # Yeni ad oluştur (_yedek ekleyerek)
-            yeni_ad = f"{dosya_adi}_yedek{uzanti}"
-
-            # Dosyanın adını değiştir
+        if not os.path.exists(tam_yol):
+            return True  # Dosya mevcut değildi, taşınabilir
+        
+        # SRP: Diyalog sorumluluğu ayrı sınıfa delege edildi
+        dialog = DosyaCakismaDialog(dosya_adi, parent=self)
+        secim = dialog.kullanici_secimi_al()
+        
+        if secim == DosyaCakismaDialog.IPTAL:
+            return None
+        elif secim == DosyaCakismaDialog.KORU:
+            return False
+        elif secim == DosyaCakismaDialog.YEDEKLE:
+            # Yedekleme işlemi - sessizce devam et
+            yeni_ad = self._yedek_dosya_adi_olustur(tam_yol)
             os.rename(tam_yol, yeni_ad)
-            QMessageBox.information(
-                self,
-                f"Dizinde {dosya_adi} dosyası tespit edildi",
-                f"Bu dosyanın adı bilgilerinin kaynolmaması adına ihtiyaten {yeni_ad} olarak değiştirildi.",
-            )
+            return True
+        
+        return True
+
+    def _yedek_dosya_adi_olustur(self, tam_yol):
+        """SRP: Yedek dosya adı oluşturma sorumluluğu."""
+        dosya_adi_base, uzanti = os.path.splitext(tam_yol)
+        yeni_ad = f"{dosya_adi_base}_yedek{uzanti}"
+        
+        sayac = 1
+        while os.path.exists(yeni_ad):
+            yeni_ad = f"{dosya_adi_base}_yedek_{sayac}{uzanti}"
+            sayac += 1
+        
+        return yeni_ad
 
     def depoDosyasiKaydet(self):
         secilenYol = self.jsonDepoButton.toolTip()
@@ -143,7 +261,17 @@ class KonfigurasyonDialog(QDialog):
                 dosya.write(goreceliYol)
 
             for jsonDosyasi in json_dosyalari:
-                self.dosya_kontrol_et_ve_degistir(secilenYol, jsonDosyasi)
+                sonuc = self.dosya_kontrol_et_ve_degistir(secilenYol, jsonDosyasi)
+                if sonuc is None:
+                    # Kullanıcı işlemi iptal etti
+                    QMessageBox.warning(
+                        self, "İptal", "İşlem kullanıcı tarafından iptal edildi."
+                    )
+                    return
+                elif sonuc is False:
+                    # Kullanıcı mevcut dosyayı korumak istedi, kopyalama atla
+                    continue
+                # sonuc True ise dosyayı kopyala
                 if not self.dosyaKopyala(self.yol, jsonDosyasi, secilenYol):
                     QMessageBox.critical(
                         self, "Hata", f"{jsonDosyasi} dosyası kopyalanamadı"

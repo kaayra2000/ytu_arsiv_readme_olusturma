@@ -17,6 +17,11 @@ jobs:
         with:
           python-version: '3.11' # Or the version matching your project
 
+      - name: Inject version
+        run: |
+          echo "VERSION = '${{ github.ref_name }}'" > readme_guncelleme_arayuzu_python/surum.py
+        shell: bash
+
       - name: Build with build.bat
         shell: cmd
         run: |
@@ -39,6 +44,10 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Inject version
+        run: |
+          echo "VERSION = '${{ github.ref_name }}'" > readme_guncelleme_arayuzu_python/surum.py
+
       - name: Make build script executable
         run: chmod +x build.sh
 
@@ -50,3 +59,4 @@ jobs:
         with:
           name: main-linux
           path: main
+

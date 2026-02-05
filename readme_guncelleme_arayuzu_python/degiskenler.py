@@ -156,38 +156,24 @@ _MODULE_DIR, _PROJECT_ROOT, BIR_UST_DIZIN, INTERNAL_ROOT = _get_base_paths()
 # Göreli yol olarak da sakla (bazı yerler hala bunu bekliyor olabilir)
 BIR_UST_DIZIN_GORELI = ".."
 
-GOOGLE_FORM_ISLEMLERI = "google_forum_islemleri"
-JSON_DOSYALARI_DEPOSU_DOSYA_ADI = "json_depo_bilgileri.txt"
-JSON_DOSYALARI_DEPOSU_DOSYA_YOLU = os.path.join(
-    BIR_UST_DIZIN, JSON_DOSYALARI_DEPOSU_DOSYA_ADI
-)
-JSON_DOSYALARI_DEPOSU = None
-README_GUNCELLEME_PYTHON = "readme_guncelleme_arayuzu_python"
-try:
-    # Önce proje kökünde ara
-    tmp_json_depo_dosyasi = os.path.join(BIR_UST_DIZIN, JSON_DOSYALARI_DEPOSU_DOSYA_ADI)
-    if not os.path.exists(tmp_json_depo_dosyasi):
-        # Bulunamazsa mevcut dizinde ara (cwd tabanlı eski davranış için)
-        if os.path.exists(JSON_DOSYALARI_DEPOSU_DOSYA_ADI):
-            tmp_json_depo_dosyasi = JSON_DOSYALARI_DEPOSU_DOSYA_ADI
-        else:
-            # Oluştur
-            with open(tmp_json_depo_dosyasi, "w", encoding="utf-8") as json_depo_dosyasi:
-                json_depo_dosyasi.write(".")
 
-    with open(tmp_json_depo_dosyasi, "r", encoding="utf-8") as json_depo_dosyasi:
-        for line in json_depo_dosyasi:
-            if JSON_DOSYALARI_DEPOSU is not None:
-                JSON_DOSYALARI_DEPOSU = os.path.join(
-                    JSON_DOSYALARI_DEPOSU, line.strip()
-                )
-            else:
-                JSON_DOSYALARI_DEPOSU = line.strip()
-except (FileNotFoundError, PermissionError):
-    JSON_DOSYALARI_DEPOSU = ""
+from PyQt6.QtCore import QSettings
+
+GOOGLE_FORM_ISLEMLERI = "google_forum_islemleri"
+
+settings = QSettings("YTU_Arsiv", "Readme_Guncelleyici")
+JSON_DOSYALARI_DEPOSU = settings.value("json_depo_yolu", ".")
+
+# QSettings'den gelen değer string olmayabilir, garanti edelim
+if not isinstance(JSON_DOSYALARI_DEPOSU, str):
+    JSON_DOSYALARI_DEPOSU = str(JSON_DOSYALARI_DEPOSU)
+
+README_GUNCELLEME_PYTHON = "readme_guncelleme_arayuzu_python"
+
 DERSLER_JSON_NAME = "dersler.json"
 DERSLER_JSON_NAME = os.path.join(JSON_DOSYALARI_DEPOSU, DERSLER_JSON_NAME)
 DERSLER_JSON_PATH = os.path.join(BIR_UST_DIZIN, DERSLER_JSON_NAME)
+
 
 HOCALAR_JSON_NAME = "hocalar.json"
 HOCALAR_JSON_NAME = os.path.join(JSON_DOSYALARI_DEPOSU, HOCALAR_JSON_NAME)

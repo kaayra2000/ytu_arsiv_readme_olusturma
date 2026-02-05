@@ -21,10 +21,11 @@ from degiskenler import (
     KONFIGURASYON_JSON_NAME,
     DOKUMANLAR_REPO_YOLU_ANAHTARI,
     KONFIGURASYON_JSON_PATH,
-    JSON_DOSYALARI_DEPOSU_DOSYA_YOLU,
+    JSON_DOSYALARI_DEPOSU,
     EKLE_BUTONU_STILI,
     BIR_UST_DIZIN,
     MAAS_ISTATISTIKLERI_TXT_ADI,
+    settings,
 )
 
 
@@ -160,7 +161,7 @@ class KonfigurasyonDialog(QDialog):
         self.kaydetButton.setStyleSheet(EKLE_BUTONU_STILI)
         self.kaydetButton.clicked.connect(self.konfKaydet)
         self.jsonDepoLabel = QLabel("Json Dosyaları Yolu")
-        self.yol = self.dosya_yolu_olustur()
+        self.yol = JSON_DOSYALARI_DEPOSU
         self.jsonDepoButton = QPushButton(elideText(self.yol, max_length=80))
         self.jsonDepoButton.setToolTip(self.yol)
         self.jsonDepoButton.clicked.connect(self.jsonDepoSec)
@@ -248,17 +249,15 @@ class KonfigurasyonDialog(QDialog):
             cwd = os.getcwd()
             cwd = os.path.join(cwd, BIR_UST_DIZIN)
             # Seçilen yolun, cwd'ye göre göreceli yolunu hesapla
-            goreceliYol = os.path.relpath(secilenYol, cwd)
             dokumanlar_yeni_goreceli_yol = os.path.relpath(
                 dokumanlar_gercek_yol, secilenYol
             ).replace(os.path.sep, "/")
             self.config[DOKUMANLAR_REPO_YOLU_ANAHTARI] = dokumanlar_yeni_goreceli_yol
             self.konfJsonaYaz()
-            # İşletim sistemi farklılıklarını dikkate al
-            goreceliYol = goreceliYol.replace(os.path.sep, "\n")
-            # Göreceli yolu dosyaya kaydet
-            with open(JSON_DOSYALARI_DEPOSU_DOSYA_YOLU, "w", encoding="utf-8") as dosya:
-                dosya.write(goreceliYol)
+            
+            # Ayarı QSettings'e kaydet
+            settings.setValue("json_depo_yolu", secilenYol)
+
 
             for jsonDosyasi in json_dosyalari:
                 sonuc = self.dosya_kontrol_et_ve_degistir(secilenYol, jsonDosyasi)
@@ -351,24 +350,6 @@ class KonfigurasyonDialog(QDialog):
                     self.valueEdit.setVisible(True)
                     self.dokumanPushButton.setVisible(False)
                 self.valueEdit.setText(self.config.get(selectedKey, ""))
-
-    def dosya_yolu_olustur(self):
-        try:
-            # Dosya okuma
-            with open(JSON_DOSYALARI_DEPOSU_DOSYA_YOLU, "r", encoding="utf-8") as dosya:
-                icerik = dosya.read().strip().split("\n")
-                # Dosya içeriğinden yolu parse etme
-                relative_path = os.path.join(BIR_UST_DIZIN, *icerik)
-                # Mevcut çalışma dizinini al
-                cwd = os.getcwd()
-                # CWD'ye göre tam yolu oluşturma
-                tam_yol = os.path.join(cwd, relative_path)
-                # İşletim sistemi farklılıklarını göz önünde bulundurarak doğru ayırıcıyı kullan
-                tam_yol = os.path.normpath(tam_yol)
-                return tam_yol
-        except Exception as e:
-            QMessageBox.critical(self, "Hata", f"Hata: {e}")
-            return None
 
     def klasordeki_json_dosyalari(self, klasor_yolu):
         # JSON dosyalarını saklayacak bir liste oluştur

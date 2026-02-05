@@ -5,6 +5,10 @@ from PyQt6.QtWidgets import (
     QPushButton,
     QVBoxLayout,
     QMessageBox,
+    QHBoxLayout,
+    QLabel,
+    QSpacerItem,
+    QSizePolicy,
 )
 from PyQt6.QtGui import QIcon, QGuiApplication
 from katkida_bulunanlari_duzenle_window import KatkidaBulunanGuncelleWindow
@@ -24,6 +28,7 @@ from konfigurasyon_json_kontrol import konfigurasyon_json_guncelle
 import os
 from coklu_satir_girdi_dialog import SatirAtlayanInputDialog
 from konfigurasyon_window import KonfigurasyonDialog
+from surum_yonetimi import VERSION
 
 
 class App(QWidget):
@@ -40,6 +45,17 @@ class App(QWidget):
         self.setWindowTitle(self.title)
         self.resize(self.width, self.height)
         layout = QVBoxLayout()
+        
+        # Version Info (Top Right)
+        top_layout = QHBoxLayout()
+        top_layout.addItem(
+            QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        )
+        version_label = QLabel(f"Versiyon: {VERSION}")
+        version_label.setObjectName("versionLabel")
+        top_layout.addWidget(version_label)
+        layout.addLayout(top_layout)
+
         # Butonları oluştur
         self.buttons = [
             QPushButton("Giriş Güncelle"),

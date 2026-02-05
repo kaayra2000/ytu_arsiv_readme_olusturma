@@ -347,3 +347,9 @@ QFrame#cakismaAyirici {
     background-color: #dddddd;
     max-height: 1px;
 }
+
+/* Versiyon Etiketi */
+QLabel#versionLabel {
+    color: #7f8c8d;
+    font-weight: bold;
+}

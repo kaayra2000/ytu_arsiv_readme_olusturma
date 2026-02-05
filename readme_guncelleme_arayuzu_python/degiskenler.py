@@ -112,7 +112,7 @@ VARSAYILAN_ACIKLAMALAR_BOLUM_ADI = "Açıklamalar"
 FAYDALI_OLABILECEK_KAYNAKLAR_UYARI_MESAJI = "Kaynaklar öğrenciler tarafından oluşturulmuştur. Bundan dolayı içeriklerin doğruluğu garanti edilemez."
 
 # DOSYA ADLARI
-KARA_LISTE_TXT = "kara_liste.txt"
+KARA_LISTE_TXT = "karaliste.txt"
 STIL_QSS = "stil.qss"
 README_MD = "README.md"
 
@@ -441,6 +441,7 @@ try:
         for line in kara_liste_dosyasi:
             KARA_LISTE.append(line.strip().lower())
 except FileNotFoundError:
+    print(f"⚠️ UYARI: Karaliste dosyası bulunamadı! Küfür filtreleme devre dışı. Beklenen yol: {os.path.join(BIR_UST_DIZIN, GOOGLE_FORM_ISLEMLERI, KARA_LISTE_TXT)}")
     KARA_LISTE = []
 
 # gitgub'dan sonraki kısmını al

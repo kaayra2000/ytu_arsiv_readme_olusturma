@@ -86,6 +86,7 @@ include = [
     "arayuz_cmdsiz.bat",
     "arayuz_cmdsiz.sh",
     "build.sh",
+    "build.bat",
 ]
 
 [tool.black]
@@ -118,3 +119,38 @@ ignore_missing_imports = true
 testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
 python_functions = ["test_*"]
+
+[tool.pyinstaller]
+# Ana giriş noktası
+entry_point = "readme_guncelleme_arayuzu_python/main.py"
+name = "main"
+console = true
+onefile = true
+
+# Dahil edilecek veri dosyaları
+datas = [
+    ["readme_guncelleme_arayuzu_python", "."],
+    ["google_forum_islemleri", "google_forum_islemleri"],
+    ["writers", "writers"],
+    ["readme_olustur.py", "."],
+    ["buffered_writer.py", "."],
+    ["folder_cache.py", "."],
+]
+
+# Gizli import'lar
+hiddenimports = [
+    "pandas",
+    "numpy",
+    "requests",
+    "google_forum_islemleri.ders_icerikleri_guncelle",
+    "google_forum_islemleri.hoca_icerikleri_guncelle",
+    "google_forum_islemleri.google_form_rutin_kontrol",
+    "readme_olustur",
+    "buffered_writer",
+    "folder_cache",
+]
+
+# Build seçenekleri
+upx = true
+strip = false
+debug = false

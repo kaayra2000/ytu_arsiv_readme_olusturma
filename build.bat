@@ -51,20 +51,32 @@ if %errorlevel% neq 0 (
 )
 echo Kurulum tamamlandi.
 
-:: spec_dosyalari dizinine geç
-set "SPEC_DIR=%PROJECT_DIR%spec_dosyalari"
-cd /d "%SPEC_DIR%"
-
-if not exist "main.spec" (
-    echo main.spec bulunamadi!
-    pause
-    exit /b 1
-)
-
 echo Build basliyor...
 
-:: Build al
-pyinstaller main.spec --distpath ../dist --workpath ../build --noconfirm
+:: PyInstaller ile build al (pyproject.toml'daki konfigurasyona gore)
+pyinstaller ^
+    --name main ^
+    --onefile ^
+    --console ^
+    --distpath "%PROJECT_DIR%dist" ^
+    --workpath "%PROJECT_DIR%build" ^
+    --noconfirm ^
+    --add-data "readme_guncelleme_arayuzu_python;." ^
+    --add-data "google_forum_islemleri;google_forum_islemleri" ^
+    --add-data "writers;writers" ^
+    --add-data "readme_olustur.py;." ^
+    --add-data "buffered_writer.py;." ^
+    --add-data "folder_cache.py;." ^
+    --hidden-import pandas ^
+    --hidden-import numpy ^
+    --hidden-import requests ^
+    --hidden-import google_forum_islemleri.ders_icerikleri_guncelle ^
+    --hidden-import google_forum_islemleri.hoca_icerikleri_guncelle ^
+    --hidden-import google_forum_islemleri.google_form_rutin_kontrol ^
+    --hidden-import readme_olustur ^
+    --hidden-import buffered_writer ^
+    --hidden-import folder_cache ^
+    readme_guncelleme_arayuzu_python/main.py
 
 if %errorlevel% equ 0 (
     echo ========================================

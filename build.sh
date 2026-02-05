@@ -43,19 +43,32 @@ if [ $? -ne 0 ]; then
 fi
 echo -e "${GREEN}Kurulum tamamlandı.${NC}"
 
-# spec_dosyalari dizinine geç
-SPEC_DIR="$SCRIPT_DIR/spec_dosyalari"
-cd "$SPEC_DIR"
-
-if [ ! -f "main.spec" ]; then
-    echo -e "${RED}main.spec bulunamadı!${NC}"
-    exit 1
-fi
-
 echo -e "${YELLOW}Build başlıyor...${NC}"
 
-# Build al
-pyinstaller main.spec --distpath ../dist --workpath ../build --noconfirm
+# PyInstaller ile build al (pyproject.toml'daki konfigürasyona göre)
+pyinstaller \
+    --name main \
+    --onefile \
+    --console \
+    --distpath "$SCRIPT_DIR/dist" \
+    --workpath "$SCRIPT_DIR/build" \
+    --noconfirm \
+    --add-data "readme_guncelleme_arayuzu_python:." \
+    --add-data "google_forum_islemleri:google_forum_islemleri" \
+    --add-data "writers:writers" \
+    --add-data "readme_olustur.py:." \
+    --add-data "buffered_writer.py:." \
+    --add-data "folder_cache.py:." \
+    --hidden-import pandas \
+    --hidden-import numpy \
+    --hidden-import requests \
+    --hidden-import google_forum_islemleri.ders_icerikleri_guncelle \
+    --hidden-import google_forum_islemleri.hoca_icerikleri_guncelle \
+    --hidden-import google_forum_islemleri.google_form_rutin_kontrol \
+    --hidden-import readme_olustur \
+    --hidden-import buffered_writer \
+    --hidden-import folder_cache \
+    readme_guncelleme_arayuzu_python/main.py
 
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}========================================"

@@ -172,7 +172,8 @@ class App(QWidget):
         QMessageBox.critical(self, "Hata", f"Bir hata oluştu: {message}")
 
 
-if __name__ == "__main__":
+def main():
+    """Ana uygulama giriş noktası."""
     # Çalıştırılabilir dosyanın yolunu ve dizinini belirle
     if getattr(sys, "frozen", False):
         # PyInstaller tarafından oluşturulmuş bir çalıştırılabilir dosya çalışıyorsa
@@ -191,3 +192,7 @@ if __name__ == "__main__":
         pass
     ex = App()
     sys.exit(app.exec())
+
+
+if __name__ == "__main__":
+    main()

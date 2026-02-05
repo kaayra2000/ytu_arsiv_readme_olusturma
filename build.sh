@@ -15,7 +15,6 @@ echo "========================================"
 
 # venv klasörünü kontrol et
 VENV_DIR="$SCRIPT_DIR/venv"
-REQUIREMENTS_FILE="$SCRIPT_DIR/gereksinimler.txt"
 
 if [ ! -d "$VENV_DIR" ]; then
     echo -e "${YELLOW}venv bulunamadı, oluşturuluyor...${NC}"
@@ -26,30 +25,23 @@ if [ ! -d "$VENV_DIR" ]; then
         exit 1
     fi
     echo -e "${GREEN}venv oluşturuldu.${NC}"
-    
-    # venv'i aktifle
-    source "$VENV_DIR/bin/activate"
-    
-    # requirements yükle
-    if [ -f "$REQUIREMENTS_FILE" ]; then
-        echo -e "${YELLOW}Gereksinimler yükleniyor...${NC}"
-        pip install --upgrade pip
-        pip install -r "$REQUIREMENTS_FILE"
-        pip install pyinstaller
-        
-        if [ $? -ne 0 ]; then
-            echo -e "${RED}Gereksinimler yüklenemedi!${NC}"
-            exit 1
-        fi
-        echo -e "${GREEN}Gereksinimler yüklendi.${NC}"
-    else
-        echo -e "${RED}gereksinimler.txt bulunamadı!${NC}"
-        exit 1
-    fi
-else
-    echo -e "${GREEN}venv mevcut, aktifleştiriliyor...${NC}"
-    source "$VENV_DIR/bin/activate"
 fi
+
+# venv'i aktifle
+source "$VENV_DIR/bin/activate"
+
+# pip'i güncelle
+pip install --upgrade pip
+
+# Projeyi pyproject.toml ile kur (dev bağımlılıklarıyla birlikte)
+echo -e "${YELLOW}pyproject.toml ile kurulum yapılıyor...${NC}"
+pip install -e ".[dev]"
+
+if [ $? -ne 0 ]; then
+    echo -e "${RED}Kurulum başarısız!${NC}"
+    exit 1
+fi
+echo -e "${GREEN}Kurulum tamamlandı.${NC}"
 
 # spec_dosyalari dizinine geç
 SPEC_DIR="$SCRIPT_DIR/spec_dosyalari"

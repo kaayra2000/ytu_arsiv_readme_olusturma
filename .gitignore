@@ -15,6 +15,9 @@ venv/
 # TXT dosyaları (log, temp vb.)
 **/*.txt
 
+# spec dosyaları
+**/*.spec
+
 # İstisnalar - repo'ya dahil edilmesi gereken dosyalar
 !pyproject.toml
 !AGENT.md

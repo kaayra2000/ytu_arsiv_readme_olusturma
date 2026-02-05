@@ -178,7 +178,7 @@ def main():
     if getattr(sys, "frozen", False):
         # PyInstaller tarafından oluşturulmuş bir çalıştırılabilir dosya çalışıyorsa
         application_path = os.path.dirname(sys.executable)
-        application_path = os.path.join(application_path, "..")
+        # Artık main, kök dizinde olduğu için bir üst dizine çıkmaya gerek yok
         os.chdir(application_path)
     konfigurasyon_json_guncelle(KONFIGURASYON_JSON_PATH)
     app = QApplication(sys.argv)

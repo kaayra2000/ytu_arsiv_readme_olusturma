@@ -79,9 +79,10 @@ pyinstaller ^
     readme_guncelleme_arayuzu_python/main.py
 
 if %errorlevel% equ 0 (
+    move /Y "%PROJECT_DIR%dist\main.exe" "%PROJECT_DIR%main.exe"
     echo ========================================
     echo Build basariyla tamamlandi!
-    echo Executable: %PROJECT_DIR%dist\main.exe
+    echo Executable: %PROJECT_DIR%main.exe
     echo ========================================
 ) else (
     echo Build basarisiz oldu!

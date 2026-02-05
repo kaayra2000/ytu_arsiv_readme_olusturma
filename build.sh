@@ -71,9 +71,12 @@ pyinstaller \
     readme_guncelleme_arayuzu_python/main.py
 
 if [ $? -eq 0 ]; then
+    # Dosyayı kök dizine taşı
+    mv "$SCRIPT_DIR/dist/main" "$SCRIPT_DIR/main"
+    
     echo -e "${GREEN}========================================"
     echo -e "Build başarıyla tamamlandı!"
-    echo -e "Executable: $SCRIPT_DIR/dist/main"
+    echo -e "Executable: $SCRIPT_DIR/main"
     echo -e "========================================${NC}"
 else
     echo -e "${RED}Build başarısız oldu!${NC}"

@@ -126,14 +126,14 @@ def _get_base_paths():
     if getattr(sys, 'frozen', False):
         # PyInstaller ile paketlenmiş
         # _MEIPASS: paket içindeki dosyalar
-        # executable dir: dist klasörü
         bundle_dir = sys._MEIPASS
+        # executable dir: artık proje kökü
         exe_dir = os.path.dirname(sys.executable)
-        # Proje kökü: dist'in bir üst dizini
-        project_root = os.path.dirname(exe_dir)
+        # Proje kökü: executable'ın bulunduğu dizin
+        project_root = exe_dir
         # Paket içindeki modül dizini
         module_dir = bundle_dir
-        # BIR_UST_DIZIN artık proje kökü (dist'in bir üst dizini)
+        # BIR_UST_DIZIN: executable'ın bulunduğu dizin
         bir_ust_dizin = project_root
     else:
         # Normal Python çalışması

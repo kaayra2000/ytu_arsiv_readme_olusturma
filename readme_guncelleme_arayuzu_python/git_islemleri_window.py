@@ -63,6 +63,14 @@ class GitIslemleriWindow(QDialog):
             self.hoca_ders_adlari_ac,
             self.push_changes,
         ]
+
+        # Paketlenmiş uygulamada arayüz güncelleme butonunu gizle
+        if getattr(sys, "frozen", False):
+            # "Arayüz Kodlarını Güncelle" butonu 2. indiste
+            del self.buttons[2]
+            del self.functions[2]
+            del self.colors[2]
+
         # Butonları dialog'a ekleme, renklendirme ve bağlama
         for btn, color, func in zip(self.buttons, self.colors, self.functions):
             btn.setStyleSheet(color)

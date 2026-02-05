@@ -18,7 +18,7 @@ set "VENV_DIR=%PROJECT_DIR%venv"
 python --version >nul 2>&1
 if %errorlevel% neq 0 (
     echo Python bulunamadi!
-    pause
+    if "%CI%"=="" pause
     exit /b 1
 )
 
@@ -28,7 +28,7 @@ if not exist "%VENV_DIR%" (
     python -m venv "%VENV_DIR%"
     if %errorlevel% neq 0 (
         echo venv olusturulamadi!
-        pause
+        if "%CI%"=="" pause
         exit /b 1
     )
     echo venv olusturuldu.
@@ -46,7 +46,7 @@ pip install -e ".[dev]"
 
 if %errorlevel% neq 0 (
     echo Kurulum basarisiz!
-    pause
+    if "%CI%"=="" pause
     exit /b 1
 )
 echo Kurulum tamamlandi.
@@ -86,10 +86,10 @@ if %errorlevel% equ 0 (
     echo ========================================
 ) else (
     echo Build basarisiz oldu!
-    pause
+    if "%CI%"=="" pause
     exit /b 1
 )
 
 call deactivate
-pause
+if "%CI%"=="" pause
 exit /b 0

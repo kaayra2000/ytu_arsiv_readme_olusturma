@@ -51,7 +51,7 @@ class App(QWidget):
         top_layout.addItem(
             QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
         )
-        version_label = QLabel(f"Versiyon: {VERSION}")
+        version_label = QLabel(f"Sürüm: {VERSION}")
         version_label.setObjectName("versionLabel")
         top_layout.addWidget(version_label)
         layout.addLayout(top_layout)

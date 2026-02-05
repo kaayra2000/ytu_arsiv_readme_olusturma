@@ -121,20 +121,23 @@ def _get_base_paths():
     """
     PyInstaller ve normal Python çalışması için temel yolları hesapla.
     Returns:
-        tuple: (module_dir, project_root, bir_ust_dizin)
+        tuple: (module_dir, project_root, bir_ust_dizin, internal_root)
     """
     if getattr(sys, 'frozen', False):
         # PyInstaller ile paketlenmiş
-        # _MEIPASS: paket içindeki dosyalar
+        # _MEIPASS: paket içindeki dosyalar (geçici dizin)
         bundle_dir = sys._MEIPASS
-        # executable dir: artık proje kökü
+        # executable dir: artık proje kökü (kullanıcının çalıştığı dizin)
         exe_dir = os.path.dirname(sys.executable)
-        # Proje kökü: executable'ın bulunduğu dizin
+        
+        # Proje kökü: executable'ın bulunduğu dizin (çıktıların yazılacağı yer)
         project_root = exe_dir
         # Paket içindeki modül dizini
         module_dir = bundle_dir
-        # BIR_UST_DIZIN: executable'ın bulunduğu dizin
+        # BIR_UST_DIZIN: executable'ın bulunduğu dizin (çıktılar buraya)
         bir_ust_dizin = project_root
+        # INTERNAL_ROOT: Paketlenmiş kaynak dosyaları (google_forum_islemleri vs.)
+        internal_root = bundle_dir
     else:
         # Normal Python çalışması
         # Bu dosyanın bulunduğu dizin (readme_guncelleme_arayuzu_python)
@@ -143,10 +146,12 @@ def _get_base_paths():
         project_root = os.path.dirname(module_dir)
         # Göreli yol olarak ".." kullanılabilir ama mutlak yol daha güvenli
         bir_ust_dizin = project_root
+        # Normal çalışmada internal root proje köküdür
+        internal_root = project_root
     
-    return module_dir, project_root, bir_ust_dizin
+    return module_dir, project_root, bir_ust_dizin, internal_root
 
-_MODULE_DIR, _PROJECT_ROOT, BIR_UST_DIZIN = _get_base_paths()
+_MODULE_DIR, _PROJECT_ROOT, BIR_UST_DIZIN, INTERNAL_ROOT = _get_base_paths()
 
 # Göreli yol olarak da sakla (bazı yerler hala bunu bekliyor olabilir)
 BIR_UST_DIZIN_GORELI = ".."
@@ -434,14 +439,14 @@ ANAHTAR_VE_LINKLER = {
 KARA_LISTE = []
 try:
     with open(
-        os.path.join(BIR_UST_DIZIN, GOOGLE_FORM_ISLEMLERI, KARA_LISTE_TXT),
+        os.path.join(INTERNAL_ROOT, GOOGLE_FORM_ISLEMLERI, KARA_LISTE_TXT),
         "r",
         encoding="utf-8",
     ) as kara_liste_dosyasi:
         for line in kara_liste_dosyasi:
             KARA_LISTE.append(line.strip().lower())
 except FileNotFoundError:
-    print(f"⚠️ UYARI: Karaliste dosyası bulunamadı! Küfür filtreleme devre dışı. Beklenen yol: {os.path.join(BIR_UST_DIZIN, GOOGLE_FORM_ISLEMLERI, KARA_LISTE_TXT)}")
+    print(f"⚠️ UYARI: Karaliste dosyası bulunamadı! Küfür filtreleme devre dışı. Beklenen yol: {os.path.join(INTERNAL_ROOT, GOOGLE_FORM_ISLEMLERI, KARA_LISTE_TXT)}")
     KARA_LISTE = []
 
 # gitgub'dan sonraki kısmını al

@@ -163,7 +163,8 @@ class GitIslemleriWindow(QDialog):
         from google_forum_islemleri.hoca_icerikleri_guncelle import main as hoca_main
         from google_forum_islemleri.ders_icerikleri_guncelle import main as ders_main
         
-        yol = os.path.join(BIR_UST_DIZIN, GOOGLE_FORM_ISLEMLERI)
+        # INTERNAL_ROOT: Paketlenmiş kaynak dosyaları (google_forum_islemleri vs.)
+        yol = os.path.join(INTERNAL_ROOT, GOOGLE_FORM_ISLEMLERI)
         self.run_python_function(
             [hoca_main, ders_main],
             baslik="Google Form Güncelleniyor...",
@@ -285,7 +286,8 @@ class GitIslemleriWindow(QDialog):
         # Modülü dinamik olarak import et
         from google_forum_islemleri.google_form_rutin_kontrol import main as rutin_main
         
-        yol = os.path.join(BIR_UST_DIZIN, GOOGLE_FORM_ISLEMLERI)
+        # INTERNAL_ROOT: Paketlenmiş kaynak dosyaları (google_forum_islemleri vs.)
+        yol = os.path.join(INTERNAL_ROOT, GOOGLE_FORM_ISLEMLERI)
         self.run_python_function(
             [rutin_main],
             baslik="Rutin Kontrol Yapılıyor...",

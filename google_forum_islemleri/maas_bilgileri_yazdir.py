@@ -50,9 +50,11 @@ def issizlik_oranlarini_yazdir(df: pd.DataFrame) -> None:
     # Oranlar; bölme hatasını önlemek için sıfır kontrolü yap
     mezun_issiz_orani = len(mezun_calismayan_df) / len(mezun_df) * 100 if len(mezun_df) > 0 else 0
     mezun_olmayan_issiz_orani = len(mezun_olmayan_calismayan_df) / len(mezun_olmayan_df) * 100 if len(mezun_olmayan_df) > 0 else 0
-    # Yurt dışında çalışanlar / tüm çalışanlar (Türkiye'de çalışmayanlar)
+    # Yurt dışında çalışmayanlar / tüm çalışanlar (Türkiye'de çalışanlar)
     calisanlar = df[df.iloc[:, I_CALISIYOR] == "Evet"]
-    yurtdisi_orani = len(calisanlar[calisanlar.iloc[:, I_TURKIYE] == "Hayır"]) / len(calisanlar) * 100 if len(calisanlar) > 0 else 0
+    turkiye_bilgisi = calisanlar.iloc[:, I_TURKIYE]
+    gecerli_turkiye_bilgisi = turkiye_bilgisi.notna() & (turkiye_bilgisi.astype(str).str.strip() != "")
+    yurtdisi_orani = (turkiye_bilgisi[gecerli_turkiye_bilgisi] == "Evet").mean() * 100 if gecerli_turkiye_bilgisi.any() else 0
 
     print(f"""
 | **Durum**                        | **Oran (%)**       |

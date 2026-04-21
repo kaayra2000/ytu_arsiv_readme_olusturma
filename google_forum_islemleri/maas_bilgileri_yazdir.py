@@ -120,25 +120,34 @@ def maas_analizini_yazdir(df: pd.DataFrame, eski_yil: int, yeni_yil: int) -> Non
             if mezuniyet_df.empty:
                 continue
 
+            general_avg = mezuniyet_df[[eski_col, yeni_col]].mean()
+            genel_analiz_var = not general_avg.isnull().any()
+
+            company_avg = sirket_analizi(mezuniyet_df, eski_col, yeni_col)
+            field_avg = alan_analizi(mezuniyet_df, eski_col, yeni_col)
+            exp_avg = tecrube_analizi(mezuniyet_df, eski_col, yeni_col)
+
+            # Bu grup için yazdırılacak hiçbir analiz yoksa başlığı da yazdırma
+            if not (genel_analiz_var or company_avg is not None or not field_avg.empty or not exp_avg.empty):
+                continue
+
             mezun_text = "Mezun" if mezuniyet == "Evet" else "Mezun Değil"
             print(f"\n### {durum} ve {mezun_text} için Maaş Analizi\n")
 
-            genel_analizi_yazdir(mezuniyet_df, eski_col, yeni_col, eski_yil, yeni_yil)
+            if genel_analiz_var:
+                genel_analizi_yazdir(mezuniyet_df, eski_col, yeni_col, eski_yil, yeni_yil)
 
             # Şirket bazlı analiz (en az 2 kişi olan şirketler)
-            company_avg = sirket_analizi(mezuniyet_df, eski_col, yeni_col)
             if company_avg is not None:
                 print(f"\n\n\n##### Şirketlere Göre Maaş Ortalamaları ve Artış Oranları ({eski_yil}–{yeni_yil})\n")
                 print(company_avg.to_markdown())
 
             # Pozisyon alanı bazlı analiz
-            field_avg = alan_analizi(mezuniyet_df, eski_col, yeni_col)
             if not field_avg.empty:
                 print(f"\n\n\n##### Alana Göre Maaş Ortalamaları ve Artış Oranları ({eski_yil}–{yeni_yil})\n")
                 print(field_avg.to_markdown())
 
             # Tecrübe süresi bazlı analiz
-            exp_avg = tecrube_analizi(mezuniyet_df, eski_col, yeni_col)
             if not exp_avg.empty:
                 print(f"\n\n\n##### Tecrübeye Göre Maaş Ortalamaları ve Artış Oranları ({eski_yil}–{yeni_yil})\n")
                 print(exp_avg.to_markdown(index=False))

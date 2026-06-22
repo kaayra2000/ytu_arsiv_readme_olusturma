@@ -1,0 +1,29 @@
+# Python cache
+**/__pycache__
+
+# Build artifacts (PyInstaller)
+build/
+dist/
+main
+
+# Virtual environment
+venv/
+.venv/
+
+# JSON, CSV dosyaları (proje verileri için)
+**/*.json
+**/*.csv
+
+# TXT dosyaları (log, temp vb.)
+**/*.txt
+
+# spec dosyaları
+**/*.spec
+
+# İstisnalar - repo'ya dahil edilmesi gereken dosyalar
+!pyproject.toml
+!AGENT.md
+!README.md
+!**/README.md
+!.gitignore
+!**/.gitignore

@@ -186,53 +186,11 @@ def yerel_yoldan_github_linkine(
     return f"./{klasor_yolu}"
 
 
-# Türkçe bağlaçlar/edatlar - başlık dışındaki konumlarda küçük harfle yazılır.
-BAGLAC_KUCUK = {"ve", "ile", "ya", "veya", "için", "da", "de", "ki"}
-
-
-def _turkce_kucult(kelime: str) -> str:
-    """Kelimeyi Türkçe kurallarına göre küçült ('İ' -> 'i', 'I' -> 'ı')."""
-    return kelime.replace("İ", "i").replace("I", "ı").lower()
-
-
-def _turkce_bas_harf_buyut(kelime: str) -> str:
-    """Kelimenin ilk harfini Türkçe kurallarına göre büyüt ('i' -> 'İ', 'ı' -> 'I')."""
-    if not kelime:
-        return kelime
-    ilk = kelime[0]
-    if ilk == "i":
-        ilk = "İ"
-    elif ilk == "ı":
-        ilk = "I"
-    else:
-        ilk = ilk.upper()
-    return ilk + kelime[1:]
-
-
-def ders_adi_normalize(ad: str) -> str:
-    """
-    Ders/başlık adını normalize et: bağlaçlar küçük harf, diğer kelimeler büyük
-    harfle başlar (ilk kelime daima büyük).
-
-    Örn: "Temel Hak Ve Sorumluluklar" -> "Temel Hak ve Sorumluluklar",
-         "Uygarlık tarihi" -> "Uygarlık Tarihi".
-
-    Args:
-        ad: Ders/başlık adı
-
-    Returns:
-        Normalize edilmiş ad
-    """
-    if not ad:
-        return ad
-    kelimeler = ad.split(" ")
-    for i, kelime in enumerate(kelimeler):
-        # İlk kelime hariç bağlaçlar küçük harf (mevcut yazıma duyarsız), diğerleri büyük
-        if i > 0 and _turkce_kucult(kelime) in BAGLAC_KUCUK:
-            kelimeler[i] = _turkce_kucult(kelime)
-        else:
-            kelimeler[i] = _turkce_bas_harf_buyut(kelime)
-    return " ".join(kelimeler)
+# Ders/hoca/başlık adı normalizasyonu tek bir yerde (giriş arayüzü de aynı
+# fonksiyonu kullanır): bağlaçlar küçük, diğer kelimeler büyük harfle başlar.
+from metin_islemleri import (  # noqa: E402
+    ders_adi_normalize, BAGLAC_KUCUK, _turkce_kucult, _turkce_bas_harf_buyut,
+)
 
 
 def _repo_goreceli_yol(klasor_yolu: str) -> str:
